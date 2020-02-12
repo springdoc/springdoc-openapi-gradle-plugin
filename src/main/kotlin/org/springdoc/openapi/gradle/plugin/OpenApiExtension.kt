@@ -9,4 +9,5 @@ open class OpenApiExtension @Inject constructor(project: Project) {
     val apiDocsUrl: Property<String> = project.objects.property(String::class.java)
     val outputFileName: Property<String> = project.objects.property(String::class.java)
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
+    val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
 }
