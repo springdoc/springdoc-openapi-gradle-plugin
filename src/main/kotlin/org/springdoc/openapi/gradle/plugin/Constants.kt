@@ -9,7 +9,7 @@ const val FORKED_SPRING_BOOT_RUN_TASK_NAME = "forkedSpringBootRun"
 
 const val DEFAULT_API_DOCS_URL = "http://localhost:8080/v3/api-docs"
 const val DEFAULT_OPEN_API_FILE_NAME = "openapi.json"
-const val DEFAULT_WAIT_TIME_IN_SECONDS = 10
+const val DEFAULT_WAIT_TIME_IN_SECONDS = 30
 
 const val SPRING_BOOT_PLUGIN = "org.springframework.boot"
 const val PROCESS_PLUGIN = "com.github.johnrengelman.processes"
