@@ -2,19 +2,22 @@ package org.springdoc.openapi.gradle.plugin
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import com.jayway.awaitility.core.ConditionTimeoutException
 import khttp.responses.Response
+import org.awaitility.Durations
+import org.awaitility.core.ConditionTimeoutException
+import org.awaitility.kotlin.*
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.slf4j.LoggerFactory
+import java.net.ConnectException
+import java.time.Duration
+import java.time.temporal.ChronoUnit.SECONDS
+
 
 open class OpenApiGeneratorTask: DefaultTask() {
-    private val LOGGER = LoggerFactory.getLogger(OpenApiGeneratorTask::class.java)
     @get:Input
     val apiDocsUrl: Property<String> = project.objects.property(String::class.java)
     @get:Input
@@ -22,6 +25,7 @@ open class OpenApiGeneratorTask: DefaultTask() {
     @get:OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
     private val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
+    val taskError: Property<String> = project.objects.property(String::class.java)
 
     init {
         description = OPEN_API_TASK_DESCRIPTION
@@ -35,6 +39,7 @@ open class OpenApiGeneratorTask: DefaultTask() {
         val defaultOutputDir = project.objects.directoryProperty()
         defaultOutputDir.set(project.buildDir)
 
+        taskError.set("")
         apiDocsUrl.set(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
         outputFileName.set(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))
         outputDir.set(extension.outputDir.getOrElse(defaultOutputDir.get()))
@@ -44,8 +49,12 @@ open class OpenApiGeneratorTask: DefaultTask() {
     @TaskAction
     fun execute() {
         try {
-            // I need to change this later on to use a smart logic to wait only for required time
-            Thread.sleep(waitTimeInSeconds.get().toLong() * 1000)
+            await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(waitTimeInSeconds.get().toLong(), SECONDS) until {
+                val statusCode = khttp.get(apiDocsUrl.get()).statusCode
+                logger.trace("apiDocsUrl = {} status code = {}", apiDocsUrl.get(), statusCode)
+                statusCode < 299
+            }
+            logger.info("Generating OpenApi Docs..")
             val response: Response = khttp.get(apiDocsUrl.get())
             val gson = GsonBuilder().setPrettyPrinting().create();
             val googleJsonObject = gson.fromJson(response.jsonObject.toString(), JsonObject::class.java)
@@ -53,8 +62,8 @@ open class OpenApiGeneratorTask: DefaultTask() {
             val outputFile = outputDir.file(outputFileName.get()).get().asFile
             outputFile.writeText(gson.toJson(googleJsonObject))
         } catch (e: ConditionTimeoutException) {
-            LOGGER.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds")
-            throw GradleException("Timeout occurred while trying to connect to ${apiDocsUrl.get()}")
+            taskError.set("Timeout occurred while trying to connect to ${apiDocsUrl.get()}")
+            this.logger.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds", e)
         }
     }
 

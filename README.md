@@ -1,4 +1,5 @@
-#**Introduction to springdoc-openapi-gradle-plugin**
+# **Introduction to springdoc-openapi-gradle-plugin**
+
 Spring Docs Open API Gradle Plugin - Generates OpenAPI-3 specification docs for spring boot application
 
 This Gradle plugin provides the capability to generate OpenAPI-3 specification docs for spring boot application from a Gradle build. 
@@ -84,7 +85,7 @@ Parameter | Description | Required | Default
 `apiDocsUrl` |  The url from where the open api docs can be downloaded | No | http://localhost:8080/v3/api-docs
 `outputDir` | The output directory where the generated open api file would be placed | No | $buildDir - Your projects build dir
 `outputFileName` | The name of the output file with extension | No | openapi.json
-`waitTimeInSeconds` | Time to wait in seconds for your spring boot application to start, before we make calls to `apiDocsUrl` to download the openapi docs | No | 10 seconds
+`waitTimeInSeconds` | Time to wait in seconds for your spring boot application to start, before we make calls to `apiDocsUrl` to download the openapi docs | No | 30 seconds
 
 # Building the plugin
 

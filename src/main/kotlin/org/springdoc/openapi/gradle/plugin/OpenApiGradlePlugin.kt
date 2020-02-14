@@ -1,6 +1,7 @@
 package org.springdoc.openapi.gradle.plugin
 
 import com.github.jengelman.gradle.plugins.processes.tasks.Fork
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.slf4j.LoggerFactory
@@ -31,10 +32,14 @@ open class OpenApiGradlePlugin: Plugin<Project> {
             }
 
             // This is my task. Before I can run it I have to run the dependent tasks
-            val openApiGeneratorTask  = project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) {
-                it.dependsOn(forkedSpringBoot)
-                it.doLast {
+            val openApiGeneratorTask  = project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
+                openApiGenTask.dependsOn(forkedSpringBoot)
+
+                openApiGenTask.doLast {
                     forkedSpringBoot.get().processHandle.abort()
+                    if (openApiGenTask.taskError.get().isNotBlank()) {
+                        throw GradleException(openApiGenTask.taskError.get())
+                    }
                 }
             }
         }
