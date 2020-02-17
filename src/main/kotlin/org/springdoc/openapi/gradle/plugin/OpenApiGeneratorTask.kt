@@ -10,6 +10,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.net.ConnectException
@@ -17,7 +18,7 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit.SECONDS
 
 
-open class OpenApiGeneratorTask: DefaultTask() {
+open class OpenApiGeneratorTask : DefaultTask() {
     @get:Input
     val apiDocsUrl: Property<String> = project.objects.property(String::class.java)
     @get:Input
@@ -25,6 +26,7 @@ open class OpenApiGeneratorTask: DefaultTask() {
     @get:OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
     private val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
+    @get:Nested
     val taskError: Property<String> = project.objects.property(String::class.java)
 
     init {
@@ -49,7 +51,10 @@ open class OpenApiGeneratorTask: DefaultTask() {
     @TaskAction
     fun execute() {
         try {
-            await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(waitTimeInSeconds.get().toLong(), SECONDS) until {
+            await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
+                waitTimeInSeconds.get().toLong(),
+                SECONDS
+            ) until {
                 val statusCode = khttp.get(apiDocsUrl.get()).statusCode
                 logger.trace("apiDocsUrl = {} status code = {}", apiDocsUrl.get(), statusCode)
                 statusCode < 299
@@ -63,7 +68,10 @@ open class OpenApiGeneratorTask: DefaultTask() {
             outputFile.writeText(gson.toJson(googleJsonObject))
         } catch (e: ConditionTimeoutException) {
             taskError.set("Timeout occurred while trying to connect to ${apiDocsUrl.get()}")
-            this.logger.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds", e)
+            this.logger.error(
+                "Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds",
+                e
+            )
         }
     }
 

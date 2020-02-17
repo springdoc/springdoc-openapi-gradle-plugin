@@ -34,7 +34,7 @@ dependencies {
     implementation(group = "khttp", name = "khttp", version = "1.0.0")
     implementation(group = "com.google.code.gson", name = "gson", version = "2.8.6")
     implementation(group = "org.awaitility", name = "awaitility-kotlin", version = "4.0.2")
-    implementation(files("/home/ramesh/gradle-processes/build/libs/gradle-processes-0.5.0.jar"))
+    implementation(group = "gradle.plugin.com.github.jengelman.gradle.plugins", name = "gradle-processes", version = "0.5.0")
 }
 
 gradlePlugin {
