@@ -32,7 +32,6 @@ open class OpenApiGradlePlugin: Plugin<Project> {
             }
 
             // This is my task. Before I can run it I have to run the dependent tasks
-            val openApiGeneratorTask  = project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
                 openApiGenTask.dependsOn(forkedSpringBoot)
 
                 openApiGenTask.doLast {
