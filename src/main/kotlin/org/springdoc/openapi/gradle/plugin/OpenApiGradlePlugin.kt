@@ -6,7 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.slf4j.LoggerFactory
 
-open class OpenApiGradlePlugin: Plugin<Project> {
+open class OpenApiGradlePlugin : Plugin<Project> {
     private val LOGGER = LoggerFactory.getLogger(OpenApiGradlePlugin::class.java)
 
     override fun apply(project: Project) {
@@ -32,7 +32,7 @@ open class OpenApiGradlePlugin: Plugin<Project> {
             }
 
             // This is my task. Before I can run it I have to run the dependent tasks
-            val openApiGeneratorTask  = project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
+            project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
                 openApiGenTask.dependsOn(forkedSpringBoot)
 
                 openApiGenTask.doLast {
