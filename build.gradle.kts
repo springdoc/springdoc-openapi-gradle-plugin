@@ -1,6 +1,7 @@
 plugins {
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.10.1"
+    id("org.sonarqube") version "2.8"
     kotlin("jvm") version "1.3.61"
     `maven-publish`
 }
@@ -8,6 +9,11 @@ plugins {
 group = "org.springdoc"
 version = "0.0.1-BETA"
 
+sonarqube {
+    properties {
+        property("sonar.projectKey", "springdoc_springdoc-openapi-gradle-plugin")
+    }
+}
 repositories {
     mavenCentral()
     maven {
