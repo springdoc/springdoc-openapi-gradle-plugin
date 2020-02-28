@@ -47,8 +47,8 @@ gradlePlugin {
     plugins {
         create("springdoc-gradle-plugin") {
             id = "org.springdoc.openapi-gradle-plugin"
-            displayName = "Spring Docs OpenApi Gradle plugin"
-            description = " This plugin generates json OpenAPI description during build time"
+            displayName = "A Gradle plugin for the springdoc-openapi library"
+            description = " This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
             implementationClass = "org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
         }
     }
@@ -57,7 +57,7 @@ gradlePlugin {
 pluginBundle {
     website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
     vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
-    tags = listOf("SpringDocs", "OpenApi", "SwaggerDocs")
+    tags = listOf("springdoc", "openapi", "swagger")
 }
 
 tasks {
