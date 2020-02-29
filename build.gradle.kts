@@ -1,6 +1,7 @@
 plugins {
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.10.1"
+    id("org.sonarqube") version "2.8"
     kotlin("jvm") version "1.3.61"
     `maven-publish`
 }
@@ -8,6 +9,11 @@ plugins {
 group = "org.springdoc"
 version = "1.0.0"
 
+sonarqube {
+    properties {
+        property("sonar.projectKey", "springdoc_springdoc-openapi-gradle-plugin")
+    }
+}
 repositories {
     mavenCentral()
     maven {
@@ -34,7 +40,7 @@ dependencies {
     implementation(group = "khttp", name = "khttp", version = "1.0.0")
     implementation(group = "com.google.code.gson", name = "gson", version = "2.8.6")
     implementation(group = "org.awaitility", name = "awaitility-kotlin", version = "4.0.2")
-    implementation(files("/home/ramesh/gradle-processes/build/libs/gradle-processes-0.5.0.jar"))
+    implementation(group = "gradle.plugin.com.github.jengelman.gradle.plugins", name = "gradle-processes", version = "0.5.0")
 }
 
 gradlePlugin {

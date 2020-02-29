@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin.svg?branch=master)](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=springdoc_springdoc-openapi-gradle-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=springdoc_springdoc-openapi-gradle-plugin)
+
 # **Introduction to springdoc-openapi-gradle-plugin**
 
 Spring Docs Open API Gradle Plugin - Generates OpenAPI-3 specification docs for spring boot application

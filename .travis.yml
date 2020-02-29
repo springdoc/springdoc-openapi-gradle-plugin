@@ -1,0 +1,27 @@
+
+dist: trusty
+language: java
+install: true
+
+jdk:
+  - oraclejdk8
+
+addons:
+  sonarcloud:
+    organization: "springdoc-openapi"
+    token:
+      secure: "m8Q4W1ZyUuzcfoCPu+7Q2SSTpiReHiK1MnUhl6wW6t3RwasD/s0c9pn1q6ZtSRpYBzFKzWxfdALV06vOFrfbTUlMhzWJnNFEdvF/ApEiRtfd0eOJYXZ219R9Wi2JsCvJd7GP9p56KwiUkbHU5zU4dPkFeYf8wPs8xwqepukb0vzTn5/EfQgpQST2nMvXi3dWUmZZl70Wokug9A5Xe4yiIf7AbrvEcXcveq0i4vsPFiPUyec6OYpKAi0cAa+qlIlkuz6YIgEMvlU2KpYqgJShO3EByU7tDkTOg500VzUylkGHMFYrrS5fdZmNSULJgVMzCleibKPWzbhZkftdy7S360mEMNWOIFkQnqCWA2wgQgXryltr3gQeb+gD85R8qtiNnwxEe5ctoOiw/VWAq40zgL+0v4qzmVDfAGuhGrVUhfKIlUu4h7tK0kkT1fqAhQBz1bwa3otQkRL88/63VKQE151lmx+65dnb7HwPDYxVSMsbIN7AdczEhqaIQh2tGWj8BvQgMpAIb5a8DkdLTD+3XtQEbj1OgJ/r67sHzE5aGu1A5N3fTDNx7RiyfbFQKWhmxraZfMJOpMqDx6l+yZlzS1yzyFBpc1EPsInG6kFWyjeQKk3S3ZOx3vTZtuFmyPS/dAgjdkOjn0Gbp0/oBlEnZjA2N/twvIhZUTUJ/Mk7j3w=" # encrypted value of your token
+
+script:
+  - ./gradlew -S clean build sonarqube
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.bin
+  - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.lock
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
