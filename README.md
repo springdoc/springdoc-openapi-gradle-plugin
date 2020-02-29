@@ -1,28 +1,28 @@
 [![Build Status](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin.svg?branch=master)](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=springdoc_springdoc-openapi-gradle-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=springdoc_springdoc-openapi-gradle-plugin)
 
-# **Introduction to springdoc-openapi-gradle-plugin**
+# Introducing springdoc-openapi-gradle-plugin
 
-Spring Docs Open API Gradle Plugin - Generates OpenAPI-3 specification docs for spring boot application
+Gradle plugin for springdoc-openapi.
 
-This Gradle plugin provides the capability to generate OpenAPI-3 specification docs for spring boot application from a Gradle build. 
-The plugin does this with help of springdoc-openapi-core
+This plugin allows you to generate an OpenAPI 3 specification for a Spring Boot application from a Gradle build. 
+The plugin does this with help of springdoc-openapi-core.
 
 Compatibility Notes
 -------------------
 
-The plugin is build on gradle version 6.1. 
+The plugin is built on Gradle version 6.1. 
 
 Dependencies
 ------------
-This plugin has a runtime dependency on the the following plugins
+This plugin has a runtime dependency on the the following plugins:
 
-1. Spring boot gradle plugin - "org.springframework.boot"
-2. Gradle process plugin - "com.github.johnrengelman.processes"
+1. Spring Boot Gradle plugin - `org.springframework.boot`
+2. Gradle process plugin - `com.github.johnrengelman.processes`
 
-Hence these plugins also needs to be added to your gradle builds.
+Hence these plugins also needs to be added to your Gradle builds.
 
-Note: You will also need the springdocs-core jar file to be present in your spring boot application
+Note: You will also need the springdoc-core jar file to be present in your Spring Boot application.
 
 How To Use
 ----------
@@ -33,7 +33,7 @@ Gradle Groovy DSL
 plugins {
       id("org.springframework.boot") version "2.2.4.RELEASE"
       id "com.github.johnrengelman.processes" version "0.5.0"
-      id("org.springdoc.openapi-gradle-plugin") version "1.0-SNAPSHOT"
+      id("org.springdoc.openapi-gradle-plugin") version "1.0.0"
 }
 ```
 
@@ -42,24 +42,22 @@ Gradle Kotlin DSL
 plugins {
     id("org.springframework.boot") version "2.2.4.RELEASE"
     id("com.github.johnrengelman.processes") version "0.5.0"
-    id("org.springdoc.openapi-gradle-plugin") version "1.0-SNAPSHOT"
+    id("org.springdoc.openapi-gradle-plugin") version "1.0.0"
 }
 ```
 
-Note: For latest versions of the plugins please check the gradle plugin portal
+Note: For latest versions of the plugins please check the [Gradle Plugins portal](https://plugins.gradle.org/).
 
 How the plugin works
 ------------
 
-When the user add this plugin and its runtime dependency plugins to your build file 
-
-The plugin creates the following tasks
+When you add this plugin and its runtime dependency plugins to your build file, the plugin creates the following tasks:
 
 1. forkedSpringBootRun
 
 2. generateOpenApiDocs
 
-Running the task generateOpenApiDocs will generate the open api docs into a file openapi.json in your projects build dir
+Running the task `generateOpenApiDocs` writes the OpenAPI spec into a `openapi.json` file in your project's build dir.
 
 ```bash
 gradle clean generateOpenApiDocs
@@ -85,10 +83,10 @@ openApi {
 
 Parameter | Description | Required | Default
 --------- | ----------- | -------- | -------
-`apiDocsUrl` |  The url from where the open api docs can be downloaded | No | http://localhost:8080/v3/api-docs
-`outputDir` | The output directory where the generated open api file would be placed | No | $buildDir - Your projects build dir
+`apiDocsUrl` | The URL from where the OpenAPI doc can be downloaded | No | http://localhost:8080/v3/api-docs
+`outputDir` | The output directory for the generated OpenAPI file | No | $buildDir - Your project's build dir
 `outputFileName` | The name of the output file with extension | No | openapi.json
-`waitTimeInSeconds` | Time to wait in seconds for your spring boot application to start, before we make calls to `apiDocsUrl` to download the openapi docs | No | 30 seconds
+`waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
 
 # Building the plugin
 
