@@ -10,6 +10,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.net.ConnectException
@@ -25,6 +26,7 @@ open class OpenApiGeneratorTask: DefaultTask() {
     @get:OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
     private val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
+    @Internal
     val taskError: Property<String> = project.objects.property(String::class.java)
 
     init {

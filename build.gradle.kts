@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.springdoc"
-version = "0.0.1-BETA"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
