@@ -6,6 +6,7 @@ const val OPEN__API_TASK_NAME = "generateOpenApiDocs"
 const val OPEN_API_TASK_DESCRIPTION = "Generates the spring doc openapi file"
 const val SPRING_BOOT_JAR_TASK_NAME = "bootJar"
 const val FORKED_SPRING_BOOT_RUN_TASK_NAME = "forkedSpringBootRun"
+const val FINALIZER_TASK_NAME = "stopForkedSpringBoot"
 
 const val DEFAULT_API_DOCS_URL = "http://localhost:8080/v3/api-docs"
 const val DEFAULT_OPEN_API_FILE_NAME = "openapi.json"
