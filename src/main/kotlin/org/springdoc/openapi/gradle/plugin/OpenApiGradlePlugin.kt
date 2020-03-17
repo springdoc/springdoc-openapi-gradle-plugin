@@ -7,7 +7,6 @@ import org.gradle.api.Project
 import org.slf4j.LoggerFactory
 
 open class OpenApiGradlePlugin : Plugin<Project> {
-    private val LOGGER = LoggerFactory.getLogger(OpenApiGradlePlugin::class.java)
 
     override fun apply(project: Project) {
         // Run time dependency on the following plugins
@@ -31,16 +30,17 @@ open class OpenApiGradlePlugin : Plugin<Project> {
                 }
             }
 
+            val stopForkedSpringBoot = project.tasks.register(FINALIZER_TASK_NAME) {
+                it.dependsOn(forkedSpringBoot)
+                it.doLast {
+                    forkedSpringBoot.get().processHandle.abort();
+                }
+            }
+
             // This is my task. Before I can run it I have to run the dependent tasks
             project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
                 openApiGenTask.dependsOn(forkedSpringBoot)
-
-                openApiGenTask.doLast {
-                    forkedSpringBoot.get().processHandle.abort()
-                    if (openApiGenTask.taskError.get().isNotBlank()) {
-                        throw GradleException(openApiGenTask.taskError.get())
-                    }
-                }
+                openApiGenTask.finalizedBy(stopForkedSpringBoot)
             }
         }
 

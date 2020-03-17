@@ -2,12 +2,12 @@ plugins {
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.10.1"
     id("org.sonarqube") version "2.8"
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.3.70"
     `maven-publish`
 }
 
 group = "org.springdoc"
-version = "1.0.0"
+version = "1.0.1-SNAPSHOT"
 
 sonarqube {
     properties {

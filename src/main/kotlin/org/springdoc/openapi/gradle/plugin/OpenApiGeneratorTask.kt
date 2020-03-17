@@ -7,6 +7,7 @@ import org.awaitility.Durations
 import org.awaitility.core.ConditionTimeoutException
 import org.awaitility.kotlin.*
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -26,8 +27,6 @@ open class OpenApiGeneratorTask : DefaultTask() {
     @get:OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
     private val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
-    @Internal
-    val taskError: Property<String> = project.objects.property(String::class.java)
 
     init {
         description = OPEN_API_TASK_DESCRIPTION
@@ -41,7 +40,6 @@ open class OpenApiGeneratorTask : DefaultTask() {
         val defaultOutputDir = project.objects.directoryProperty()
         defaultOutputDir.set(project.buildDir)
 
-        taskError.set("")
         apiDocsUrl.set(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
         outputFileName.set(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))
         outputDir.set(extension.outputDir.getOrElse(defaultOutputDir.get()))
@@ -67,11 +65,8 @@ open class OpenApiGeneratorTask : DefaultTask() {
             val outputFile = outputDir.file(outputFileName.get()).get().asFile
             outputFile.writeText(gson.toJson(googleJsonObject))
         } catch (e: ConditionTimeoutException) {
-            taskError.set("Timeout occurred while trying to connect to ${apiDocsUrl.get()}")
-            this.logger.error(
-                "Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds",
-                e
-            )
+            this.logger.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds", e)
+            throw GradleException("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds")
         }
     }
 
