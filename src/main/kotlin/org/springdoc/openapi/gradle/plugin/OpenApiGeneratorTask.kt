@@ -59,15 +59,21 @@ open class OpenApiGeneratorTask : DefaultTask() {
             }
             logger.info("Generating OpenApi Docs..")
             val response: Response = khttp.get(apiDocsUrl.get())
-            val gson = GsonBuilder().setPrettyPrinting().create();
-            val googleJsonObject = gson.fromJson(response.jsonObject.toString(), JsonObject::class.java)
+
+            val isYaml = apiDocsUrl.get().toLowerCase().endsWith(".yaml")
+            val apiDocs = if (isYaml) response.text else prettifyJson(response)
 
             val outputFile = outputDir.file(outputFileName.get()).get().asFile
-            outputFile.writeText(gson.toJson(googleJsonObject))
+            outputFile.writeText(apiDocs)
         } catch (e: ConditionTimeoutException) {
             this.logger.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds", e)
             throw GradleException("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds")
         }
     }
 
+    private fun prettifyJson(response: Response): String {
+        val gson = GsonBuilder().setPrettyPrinting().create();
+        val googleJsonObject = gson.fromJson(response.jsonObject.toString(), JsonObject::class.java)
+        return gson.toJson(googleJsonObject)
+    }
 }
