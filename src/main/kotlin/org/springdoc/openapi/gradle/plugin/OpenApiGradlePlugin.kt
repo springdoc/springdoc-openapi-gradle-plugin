@@ -1,12 +1,14 @@
 package org.springdoc.openapi.gradle.plugin
 
 import com.github.jengelman.gradle.plugins.processes.tasks.Fork
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.slf4j.LoggerFactory
+import org.gradle.api.logging.Logging
+import java.util.*
 
 open class OpenApiGradlePlugin : Plugin<Project> {
+    private val LOGGER =
+        Logging.getLogger(OpenApiGradlePlugin::class.java)
 
     override fun apply(project: Project) {
         // Run time dependency on the following plugins
@@ -19,13 +21,31 @@ open class OpenApiGradlePlugin : Plugin<Project> {
             // Spring boot jar task
             val bootJarTask = project.tasks.named(SPRING_BOOT_JAR_TASK_NAME)
 
+            val extension: OpenApiExtension = project.extensions.run {
+                getByName(EXTENSION_NAME) as OpenApiExtension
+            }
+
             // Create a forked version spring boot run task
             val forkedSpringBoot = project.tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, Fork::class.java) { fork ->
                 fork.dependsOn(bootJarTask)
 
                 fork.onlyIf {
                     val bootJar = bootJarTask.get().outputs.files.first()
-                    fork.commandLine = listOf("java", "-jar", "$bootJar")
+
+                    val command = mutableListOf("java", "-jar")
+                    if (extension.forkProperties.isPresent) {
+                        val element = extension.forkProperties.get()
+                        if (element is String) {
+                            command.add(element)
+                        } else if (element is Properties) {
+                            element.toMap().map { r -> "-D${r.key}=${r.value}" }.forEach { p -> command.add(p) }
+                        } else {
+                            LOGGER.warn("Failed to use the value set for 'forkProprerties'. Only String and Properties objects are supported.")
+                        }
+                    }
+                    command.add("$bootJar")
+
+                    fork.commandLine = command
                     true
                 }
             }
