@@ -78,6 +78,7 @@ openApi {
     outputDir.set(file("$buildDir/docs"))
     outputFileName.set("swagger.json")
     waitTimeInSeconds.set(10)
+    forkProperties.set("-Dspring.profiles.active=special")
 }
 ```
 
@@ -87,6 +88,30 @@ Parameter | Description | Required | Default
 `outputDir` | The output directory for the generated OpenAPI file | No | $buildDir - Your project's build dir
 `outputFileName` | The name of the output file with extension | No | openapi.json
 `waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
+`forkProperites` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
+
+### Fork properties examples
+Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started
+to be able to start (profiles, other custom properties, etc etc)
+
+#### Static string
+```
+openApi {
+	forkProperties = "-Dspring.profiles.active=special -DstringPassedInForkProperites=true"
+}
+```
+
+#### Passing straight from gradle
+This allows for you to be able to just send in whatever you need when you generate docs. 
+
+`./gradlew clean generateOpenApiDocs -Dspring.profiles.active=special`
+
+and as long as the config looks as follows that value will be passed into the forked spring boot application.
+```
+openApi {
+	forkProperties = System.properties
+}
+```
 
 # Building the plugin
 
