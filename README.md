@@ -114,5 +114,27 @@ openApi {
 ```
 
 # Building the plugin
+1. Clone the repo `git@github.com:springdoc/springdoc-openapi-gradle-plugin.git`
+2. Build and publish the plugin into your local maven repository by running the following 
+    ```
+    ./gradlew clean pTML
+   ```
+   
+# Testing the plugin
+1. Create a new spring boot application or use an existing spring boot app and follow the `How To Use` section above to configure this plugin.
+2. Update the version for the plugin to match the current version found in `build.gradle.kts`
 
-TODO
+    ```
+    id("org.springdoc.openapi-gradle-plugin") version "1.33.0-SNAPSHOT"
+    ```
+
+3. Add the following to the spring boot apps `settings.gradle`
+
+    ```
+    pluginManagement {
+        repositories {
+            mavenLocal()
+            gradlePluginPortal()
+        }
+    }
+    ```
