@@ -125,7 +125,7 @@ openApi {
 2. Update the version for the plugin to match the current version found in `build.gradle.kts`
 
     ```
-    id("org.springdoc.openapi-gradle-plugin") version "1.33.0-SNAPSHOT"
+    id("org.springdoc.openapi-gradle-plugin") version "1.3.1-SNAPSHOT"
     ```
 
 3. Add the following to the spring boot apps `settings.gradle`
