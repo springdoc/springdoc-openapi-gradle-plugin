@@ -76,8 +76,12 @@ out/
 ######################
 # Gradle
 ######################
-.gradle/
-/build/
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**
+!**/src/test/**
 
 ######################
 # Package Files
