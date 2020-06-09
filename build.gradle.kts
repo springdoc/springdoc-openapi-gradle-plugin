@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "org.springdoc"
-version = "1.3.0-SNAPSHOT"
+version = "1.3.0"
 
 sonarqube {
     properties {
