@@ -84,7 +84,7 @@ class OpenApiGradlePluginTest {
 
         buildFile.writeText("""$baseBuildGradle
             openApi{
-                outputDir = file("${specialOutputDir.path}")
+                outputDir = file("${specialOutputDir.toURI().path}")
             }
         """.trimMargin())
 
