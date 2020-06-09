@@ -11,7 +11,7 @@ The plugin does this with help of springdoc-openapi-core.
 Compatibility Notes
 -------------------
 
-The plugin is built on Gradle version 6.1. 
+The plugin is built on Gradle version 6.4.1. 
 
 Dependencies
 ------------
@@ -31,24 +31,24 @@ Gradle Groovy DSL
 
 ```groovy
 plugins {
-      id "org.springframework.boot" version "2.2.4.RELEASE"
+      id "org.springframework.boot" version "2.3.0.RELEASE"
       id "com.github.johnrengelman.processes" version "0.5.0"
-      id "org.springdoc.openapi-gradle-plugin" version "1.2.0"
+      id "org.springdoc.openapi-gradle-plugin" version "1.3.0"
 }
 ```
 
 Gradle Kotlin DSL
 ```groovy
 plugins {
-    id("org.springframework.boot") version "2.2.4.RELEASE"
+    id("org.springframework.boot") version "2.3.0.RELEASE"
     id("com.github.johnrengelman.processes") version "0.5.0"
-    id("org.springdoc.openapi-gradle-plugin") version "1.2.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.3.0"
 }
 ```
 
 Note: For latest versions of the plugins please check the [Gradle Plugins portal](https://plugins.gradle.org/).
 
-How the plugin works
+How the plugin works?
 ------------
 
 When you add this plugin and its runtime dependency plugins to your build file, the plugin creates the following tasks:
