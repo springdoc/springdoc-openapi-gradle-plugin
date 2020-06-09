@@ -41,6 +41,10 @@ dependencies {
     implementation(group = "com.google.code.gson", name = "gson", version = "2.8.6")
     implementation(group = "org.awaitility", name = "awaitility-kotlin", version = "4.0.2")
     implementation(files("$projectDir/libs/gradle-processes-0.5.0.jar"))
+
+    testImplementation(gradleTestKit())
+    testImplementation("junit:junit:4.13")
+    testImplementation("com.beust:klaxon:5.2")
 }
 
 gradlePlugin {

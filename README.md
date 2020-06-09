@@ -78,6 +78,7 @@ openApi {
     outputDir.set(file("$buildDir/docs"))
     outputFileName.set("swagger.json")
     waitTimeInSeconds.set(10)
+    forkProperties.set("-Dspring.profiles.active=special")
 }
 ```
 
@@ -87,7 +88,53 @@ Parameter | Description | Required | Default
 `outputDir` | The output directory for the generated OpenAPI file | No | $buildDir - Your project's build dir
 `outputFileName` | The name of the output file with extension | No | openapi.json
 `waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
+`forkProperites` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
+
+### Fork properties examples
+Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started
+to be able to start (profiles, other custom properties, etc etc)
+
+#### Static string
+```
+openApi {
+	forkProperties = "-Dspring.profiles.active=special -DstringPassedInForkProperites=true"
+}
+```
+
+#### Passing straight from gradle
+This allows for you to be able to just send in whatever you need when you generate docs. 
+
+`./gradlew clean generateOpenApiDocs -Dspring.profiles.active=special`
+
+and as long as the config looks as follows that value will be passed into the forked spring boot application.
+```
+openApi {
+	forkProperties = System.properties
+}
+```
 
 # Building the plugin
+1. Clone the repo `git@github.com:springdoc/springdoc-openapi-gradle-plugin.git`
+2. Build and publish the plugin into your local maven repository by running the following 
+    ```
+    ./gradlew clean pTML
+   ```
+   
+# Testing the plugin
+1. Create a new spring boot application or use an existing spring boot app and follow the `How To Use` section above to configure this plugin.
+2. Update the version for the plugin to match the current version found in `build.gradle.kts`
 
-TODO
+    ```
+    id("org.springdoc.openapi-gradle-plugin") version "1.33.0-SNAPSHOT"
+    ```
+
+3. Add the following to the spring boot apps `settings.gradle`
+
+    ```
+    pluginManagement {
+        repositories {
+            mavenLocal()
+            gradlePluginPortal()
+        }
+    }
+    ```
