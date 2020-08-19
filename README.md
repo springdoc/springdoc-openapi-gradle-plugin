@@ -88,7 +88,7 @@ Parameter | Description | Required | Default
 `outputDir` | The output directory for the generated OpenAPI file | No | $buildDir - Your project's build dir
 `outputFileName` | The name of the output file with extension | No | openapi.json
 `waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
-`forkProperites` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
+`forkProperties` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
 
 ### Fork properties examples
 Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started
