@@ -89,6 +89,8 @@ Parameter | Description | Required | Default
 `outputFileName` | The name of the output file with extension | No | openapi.json
 `waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
 `forkProperties` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
+`javaPath` | Path to a custom java executable to override the system default | No | "java"
+`executableProperties` | Any Spring property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
 
 ### Fork properties examples
 Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started

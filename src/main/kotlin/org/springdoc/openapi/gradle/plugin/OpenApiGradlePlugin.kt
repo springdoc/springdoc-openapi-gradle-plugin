@@ -31,8 +31,12 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
                 fork.onlyIf {
                     val bootJar = bootJarTask.get().outputs.files.first()
-
-                    val command = mutableListOf("java", "-jar")
+                    val command : MutableList<String>
+                    if(extension.javaPath.isPresent) {
+                        command = mutableListOf(extension.javaPath.get(), "-jar")
+                    } else {
+                        command = mutableListOf(DEFAULT_JAVA, "-jar")
+                    }
                     if (extension.forkProperties.isPresent) {
                         val element = extension.forkProperties.get()
                         if (element is String) {
@@ -44,6 +48,16 @@ open class OpenApiGradlePlugin : Plugin<Project> {
                         }
                     }
                     command.add("$bootJar")
+                    if (extension.executableProperties.isPresent) {
+                        val element = extension.executableProperties.get()
+                        if (element is String) {
+                            command.add(element)
+                        } else if (element is Properties) {
+                            element.toMap().map { r -> "-D${r.key}=${r.value}" }.forEach { p -> command.add(p) }
+                        } else {
+                            LOGGER.warn("Failed to use the value set for 'executableProperties'. Only String and Properties objects are supported.")
+                        }
+                    }
 
                     fork.commandLine = command
                     true
