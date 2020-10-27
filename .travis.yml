@@ -9,9 +9,7 @@ jdk:
 addons:
   sonarcloud:
     organization: "springdoc-openapi"
-    token:
-      secure: "SpoOySada+0EzplLHmq2Qv6TYgkW8pCnaOh0nCvKf3ZodDgTWgESeZ4pz9qYb9Fj9csO94Dva5eBljHi/k4Z10A90Fw3lGmIjrIydD4NYpQUcLsUFTTpV+CZW+nFee0zU2fhCG5RHCnUc2jkeg3yEzVkYOKNnHQHpe6XPlVKyHJYu4T28qRWOMoDjkk24AfABW55+j7F3tjTHEWoVx6cM2wKL3mC2LswgDXBKYqsb3JFOU+DUGIPwS8IHXVlBex3TchcdtYXlnFqfv2n2svTxXsLwzSmQmxHiN2eQvVU0AFQQNcs98rq/3ycDocb014LM9j/dt+C113htA3fXGU29TtyEzun/rJkcoXCdbZ0k0S61YcaFkVKirT13IsxRxPCdaw2je7XeNB+WRY2UV/wmjgEYSdr8u0OIpxluu1V6GLmruutwEuR+rnwCRXFvmgKrKbqVUawPGBFmoEGsKyHLQgmaobjxATDvhkGl/6iXDgBLqwKeMAkgG8zwdV+H8yPdrNSZNkVErY5Wtjhu+EAmKwdZNeCfy5nK4JK5vIx6tcpEdTsM/TMUaqUaLco9cb5d9b/yKejM7gp8KBN21a/4tJ4Z4nQVjYgXZBaZ8nLb6/83MT1K00EMSqVZoEHdNQaLvx3CEBv8kJ+EHcpNqwEe90IfkCkhfBC3r6F8UXMXXQ="
-  
+   
 script:
   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./gradlew clean build sonarqube publish; fi'
   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash ./gradlew build; fi'
