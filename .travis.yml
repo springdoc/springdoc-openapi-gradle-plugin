@@ -9,7 +9,8 @@ jdk:
 addons:
   sonarcloud:
     organization: "springdoc-openapi"
-    token: ${SONAR_TOKEN}
+    token:
+      secure: ${SONAR_TOKEN}
   
 script:
   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./gradlew clean build sonarqube publish; fi'
