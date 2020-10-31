@@ -138,3 +138,9 @@ openApi {
         }
     }
     ```
+
+# **Thank you for the support**
+
+* Thanks a lot [JetBrains](https://www.jetbrains.com/?from=springdoc-openapi) for supporting springdoc-openapi project.
+
+![JenBrains logo](https://springdoc.org/assets/images/jetbrains.svg)
