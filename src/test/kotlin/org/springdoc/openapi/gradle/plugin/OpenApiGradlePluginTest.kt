@@ -126,7 +126,7 @@ class OpenApiGradlePluginTest {
     fun `using forked properties`() {
         buildFile.writeText("""$baseBuildGradle
             openApi{
-                forkProperties = "-Dspring.profiles.active=multiple-endpoints"
+                forkProperties = "-Dspring.profiles.active=multiple-endpoints -Dsome.second.property=someValue"
             }
         """.trimMargin())
 
@@ -139,7 +139,7 @@ class OpenApiGradlePluginTest {
         assertEquals(TaskOutcome.SUCCESS, getTaskByName(result, "generateOpenApiDocs")?.outcome)
 
         val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 2)
+        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 3)
     }
 
     @Test
