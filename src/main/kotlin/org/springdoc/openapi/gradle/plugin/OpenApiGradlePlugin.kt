@@ -36,7 +36,10 @@ open class OpenApiGradlePlugin : Plugin<Project> {
                     if (extension.forkProperties.isPresent) {
                         val element = extension.forkProperties.get()
                         if (element is String) {
-                            command.add(element)
+                            val elements = element
+                                .split("-D")
+                                .map { "-D${it.trim()}" }
+                            command.addAll(elements)
                         } else if (element is Properties) {
                             element.toMap().map { r -> "-D${r.key}=${r.value}" }.forEach { p -> command.add(p) }
                         } else {
