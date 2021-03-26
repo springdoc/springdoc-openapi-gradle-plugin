@@ -1,16 +1,14 @@
 package org.springdoc.openapi.gradle.plugin
 
 import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser
 import org.gradle.internal.impldep.org.apache.commons.lang.RandomStringUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.FeatureCheckBuildResult
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -202,6 +200,68 @@ class OpenApiGradlePluginTest {
 
         val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
         assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 1)
+    }
+
+    @Test
+    fun `using multiple grouped apis`() {
+        val outputJsonFileNameGroupA = "openapi-groupA.json"
+        val outputJsonFileNameGroupB = "openapi-groupB.json"
+
+        buildFile.writeText("""$baseBuildGradle
+            openApi{
+                groupedApiMappings = ["http://localhost:8080/v3/api-docs/groupA": "$outputJsonFileNameGroupA",
+                                      "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
+                forkProperties = "-Dspring.profiles.active=multiple-grouped-apis"
+            }
+        """.trimMargin())
+
+        val result = GradleRunner.create()
+            .withProjectDir(projectTestDir)
+            .withArguments("clean", "generateOpenApiDocs")
+            .withPluginClasspath()
+            .build()
+
+        assertEquals(TaskOutcome.SUCCESS, getTaskByName(result, "generateOpenApiDocs")?.outcome)
+
+        val openApiJsonFileGroupA = File(projectBuildDir, outputJsonFileNameGroupA)
+        assertOpenApiJsonFileIsAsExpected(openApiJsonFileGroupA, 1)
+
+        val openApiJsonFileGroupB = File(projectBuildDir, outputJsonFileNameGroupB)
+        assertOpenApiJsonFileIsAsExpected(openApiJsonFileGroupB, 2)
+    }
+
+    @Test
+    fun `using multiple grouped apis should ignore single api properties`() {
+        val outputJsonFileNameSingleGroupA = "openapi-single-groupA.json"
+        val outputJsonFileNameGroupA = "openapi-groupA.json"
+        val outputJsonFileNameGroupB = "openapi-groupB.json"
+
+        buildFile.writeText("""$baseBuildGradle
+            openApi{
+                apiDocsUrl = "http://localhost:8080/v3/api-docs/groupA"
+                outputFileName = "$outputJsonFileNameSingleGroupA"
+                groupedApiMappings = ["http://localhost:8080/v3/api-docs/groupA": "$outputJsonFileNameGroupA",
+                                      "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
+                forkProperties = "-Dspring.profiles.active=multiple-grouped-apis"
+            }
+        """.trimMargin())
+
+        val result = GradleRunner.create()
+            .withProjectDir(projectTestDir)
+            .withArguments("clean", "generateOpenApiDocs")
+            .withPluginClasspath()
+            .build()
+
+        assertEquals(TaskOutcome.SUCCESS, getTaskByName(result, "generateOpenApiDocs")?.outcome)
+
+        val openApiJsonFileSingleGroupA = File(projectBuildDir, outputJsonFileNameSingleGroupA)
+        assertFalse(openApiJsonFileSingleGroupA.exists())
+
+        val openApiJsonFileGroupA = File(projectBuildDir, outputJsonFileNameGroupA)
+        assertOpenApiJsonFileIsAsExpected(openApiJsonFileGroupA, 1)
+
+        val openApiJsonFileGroupB = File(projectBuildDir, outputJsonFileNameGroupB)
+        assertOpenApiJsonFileIsAsExpected(openApiJsonFileGroupB, 2)
     }
 
     private fun assertOpenApiJsonFileIsAsExpected(openApiJsonFile: File, expectedNumberOfPaths: Int) {

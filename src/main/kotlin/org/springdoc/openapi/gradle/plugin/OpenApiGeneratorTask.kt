@@ -9,9 +9,9 @@ import org.awaitility.kotlin.*
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.net.ConnectException
@@ -24,6 +24,8 @@ open class OpenApiGeneratorTask : DefaultTask() {
     val apiDocsUrl: Property<String> = project.objects.property(String::class.java)
     @get:Input
     val outputFileName: Property<String> = project.objects.property(String::class.java)
+    @get:Input
+    val groupedApiMappings: MapProperty<String, String> = project.objects.mapProperty(String::class.java, String::class.java)
     @get:OutputDirectory
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
     private val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
@@ -42,32 +44,41 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
         apiDocsUrl.set(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
         outputFileName.set(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))
+        groupedApiMappings.set(extension.groupedApiMappings.getOrElse(emptyMap()))
         outputDir.set(extension.outputDir.getOrElse(defaultOutputDir.get()))
         waitTimeInSeconds.set(extension.waitTimeInSeconds.getOrElse(DEFAULT_WAIT_TIME_IN_SECONDS))
     }
 
     @TaskAction
     fun execute() {
+        if (groupedApiMappings.isPresent && groupedApiMappings.get().isNotEmpty()) {
+            groupedApiMappings.get().forEach(this::generateApiDocs)
+        } else {
+            generateApiDocs(apiDocsUrl.get(), outputFileName.get())
+        }
+    }
+
+    fun generateApiDocs(url: String, fileName: String) {
         try {
             await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
                 waitTimeInSeconds.get().toLong(),
                 SECONDS
             ) until {
-                val statusCode = khttp.get(apiDocsUrl.get()).statusCode
-                logger.trace("apiDocsUrl = {} status code = {}", apiDocsUrl.get(), statusCode)
+                val statusCode = khttp.get(url).statusCode
+                logger.trace("apiDocsUrl = {} status code = {}", url, statusCode)
                 statusCode < 299
             }
             logger.info("Generating OpenApi Docs..")
-            val response: Response = khttp.get(apiDocsUrl.get())
+            val response: Response = khttp.get(url)
 
-            val isYaml = apiDocsUrl.get().toLowerCase().contains(".yaml")
+            val isYaml = url.toLowerCase().contains(".yaml")
             val apiDocs = if (isYaml) response.text else prettifyJson(response)
 
-            val outputFile = outputDir.file(outputFileName.get()).get().asFile
+            val outputFile = outputDir.file(fileName).get().asFile
             outputFile.writeText(apiDocs)
         } catch (e: ConditionTimeoutException) {
-            this.logger.error("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds", e)
-            throw GradleException("Unable to connect to ${apiDocsUrl.get()} waited for ${waitTimeInSeconds.get()} seconds")
+            this.logger.error("Unable to connect to ${url} waited for ${waitTimeInSeconds.get()} seconds", e)
+            throw GradleException("Unable to connect to ${url} waited for ${waitTimeInSeconds.get()} seconds")
         }
     }
 

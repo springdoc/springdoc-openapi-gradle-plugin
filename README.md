@@ -79,6 +79,8 @@ openApi {
     outputFileName.set("swagger.json")
     waitTimeInSeconds.set(10)
     forkProperties.set("-Dspring.profiles.active=special")
+    groupedApiMappings.set(["https://localhost:8080/v3/api-docs/groupA" to "swagger-groupA.json",
+                            "https://localhost:8080/v3/api-docs/groupB" to "swagger-groupB.json"])
 }
 ```
 
@@ -89,6 +91,7 @@ Parameter | Description | Required | Default
 `outputFileName` | The name of the output file with extension | No | openapi.json
 `waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
 `forkProperties` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
+`groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names | No | []
 
 ### Fork properties examples
 Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started
@@ -112,6 +115,9 @@ openApi {
 	forkProperties = System.properties
 }
 ```
+
+### Grouped API Mappings Notes
+The `groupedApiMappings` customization allows you to specify multiple URLs/file names for use within this plugin. This configures the plugin to ignore the `apiDocsUrl` and `outputFileName` parameters and only use those found in `groupedApiMappings`. The plugin will then attempt to download each OpenAPI doc in turn as it would for a single OpenAPI doc.
 
 # Building the plugin
 1. Clone the repo `git@github.com:springdoc/springdoc-openapi-gradle-plugin.git`
