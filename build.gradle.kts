@@ -2,7 +2,7 @@ plugins {
 	`java-gradle-plugin`
 	id("com.gradle.plugin-publish") version "0.11.0"
 	id("org.sonarqube") version "2.8"
-	kotlin("jvm") version "1.3.70"
+	kotlin("jvm") version "1.4.31"
 	`maven-publish`
 }
 
@@ -39,7 +39,6 @@ publishing {
 }
 
 dependencies {
-	implementation(kotlin("stdlib-jdk8"))
 	implementation(kotlin("reflect"))
 	implementation(group = "khttp", name = "khttp", version = "1.0.0")
 	implementation(group = "com.google.code.gson", name = "gson", version = "2.8.6")
@@ -68,11 +67,8 @@ pluginBundle {
 	tags = listOf("springdoc", "openapi", "swagger")
 }
 
-tasks {
-	compileKotlin {
-		kotlinOptions.jvmTarget = "1.8"
-	}
-	compileTestKotlin {
-		kotlinOptions.jvmTarget = "1.8"
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+	kotlinOptions {
+		jvmTarget = "1.8"
 	}
 }
