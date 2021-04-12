@@ -51,16 +51,8 @@ class OpenApiGradlePluginTest {
     fun `default build no options`() {
         buildFile.writeText(baseBuildGradle)
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 1)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1)
     }
 
     @Test
@@ -76,16 +68,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(specialOutputDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 1)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1, buildDir = specialOutputDir)
     }
 
     @Test
@@ -100,16 +84,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(projectBuildDir, specialOutputJsonFileName)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 1)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1, specialOutputJsonFileName)
     }
 
     @Test
@@ -122,16 +98,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 3)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(3)
     }
 
     @Test
@@ -144,16 +112,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs", "-Dspring.profiles.active=multiple-endpoints")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 2)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome)
+        assertOpenApiJsonFile(2)
     }
 
     @Test
@@ -167,16 +127,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-
-        val openApiJsonFile = File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME)
-        assertOpenApiJsonFileIsAsExpected(openApiJsonFile, 1)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1)
     }
 
     @Test
@@ -190,14 +142,8 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-        assertOpenApiJsonFileIsAsExpected(File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME), 1)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1)
     }
 
     @Test
@@ -215,15 +161,9 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
-        assertOpenApiJsonFileIsAsExpected(File(projectBuildDir, outputJsonFileNameGroupA), 1)
-        assertOpenApiJsonFileIsAsExpected(File(projectBuildDir, outputJsonFileNameGroupB), 2)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
+        assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
     }
 
     @Test
@@ -244,22 +184,26 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
         )
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectTestDir)
-            .withArguments("clean", "generateOpenApiDocs")
-            .withPluginClasspath()
-            .build()
-
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
         assertFalse(File(projectBuildDir, outputJsonFileNameSingleGroupA).exists())
-        assertOpenApiJsonFileIsAsExpected(File(projectBuildDir, outputJsonFileNameGroupA), 1)
-        assertOpenApiJsonFileIsAsExpected(File(projectBuildDir, outputJsonFileNameGroupB), 2)
+        assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
+        assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
     }
 
-    private fun assertOpenApiJsonFileIsAsExpected(openApiJsonFile: File, expectedNumberOfPaths: Int) {
-        val openApiJson = getOpenApiJsonAtLocation(openApiJsonFile)
+    private fun runTheBuild(vararg additionalArguments: String = emptyArray()) = GradleRunner.create()
+        .withProjectDir(projectTestDir)
+        .withArguments("clean", "generateOpenApiDocs", *additionalArguments)
+        .withPluginClasspath()
+        .build()
+
+    private fun assertOpenApiJsonFile(
+        expectedPathCount: Int,
+        outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
+        buildDir: File = projectBuildDir
+    ) {
+        val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
         assertEquals("3.0.1", openApiJson.string("openapi"))
-        assertEquals(expectedNumberOfPaths, openApiJson.obj("paths")!!.size)
+        assertEquals(expectedPathCount, openApiJson.obj("paths")!!.size)
     }
 
     private fun getOpenApiJsonAtLocation(path: File) = Parser.default().parse(FileReader(path)) as JsonObject
