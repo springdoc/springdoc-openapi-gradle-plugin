@@ -1,9 +1,10 @@
 plugins {
 	`java-gradle-plugin`
-	id("com.gradle.plugin-publish") version "0.11.0"
-	id("org.sonarqube") version "2.8"
+	id("com.gradle.plugin-publish") version "0.14.0"
+	id("org.sonarqube") version "3.1.1"
 	kotlin("jvm") version "1.4.31"
 	`maven-publish`
+	id("com.github.ben-manes.versions") version "0.38.0"
 }
 
 group = "org.springdoc"
@@ -40,15 +41,15 @@ publishing {
 
 dependencies {
 	implementation(kotlin("reflect"))
-	implementation(group = "khttp", name = "khttp", version = "1.0.0")
-	implementation(group = "com.google.code.gson", name = "gson", version = "2.8.6")
-	implementation(group = "org.awaitility", name = "awaitility-kotlin", version = "4.0.2")
+	implementation("khttp:khttp:1.0.0")
+	implementation("com.google.code.gson:gson:2.8.6")
+	implementation("org.awaitility:awaitility-kotlin:4.0.3")
 	implementation(files("$projectDir/libs/gradle-processes-0.5.0.jar"))
 
 	testImplementation(gradleTestKit())
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
-	testImplementation("com.beust:klaxon:5.2")
+	testImplementation("com.beust:klaxon:5.5")
 }
 
 gradlePlugin {
