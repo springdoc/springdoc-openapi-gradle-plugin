@@ -46,7 +46,8 @@ dependencies {
 	implementation(files("$projectDir/libs/gradle-processes-0.5.0.jar"))
 
 	testImplementation(gradleTestKit())
-	testImplementation("junit:junit:4.13")
+	testImplementation(platform("org.junit:junit-bom:5.7.1"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.2")
 }
 
@@ -71,4 +72,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 	kotlinOptions {
 		jvmTarget = "1.8"
 	}
+}
+
+tasks.withType<Test>().configureEach {
+	useJUnitPlatform()
+	maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
 }
