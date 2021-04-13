@@ -3,11 +3,11 @@ package org.springdoc.openapi.gradle.plugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
 import java.util.*
 
 open class OpenApiGradlePlugin : Plugin<Project> {
-	private val LOGGER =
-		Logging.getLogger(OpenApiGradlePlugin::class.java)
+	private val logger = Logging.getLogger(OpenApiGradlePlugin::class.java)
 
 	override fun apply(project: Project) {
 		// Run time dependency on the following plugins
@@ -25,30 +25,18 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			}
 
 			// Create a forked version spring boot run task
-			val forkedSpringBoot = project.tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, AnnotatedFork::class.java) { fork ->
+			val forkedSpringBoot = project.tasks.register(
+				FORKED_SPRING_BOOT_RUN_TASK_NAME,
+				AnnotatedFork::class.java
+			) { fork ->
 				fork.dependsOn(bootJarTask)
 
 				fork.onlyIf {
 					val bootJar = bootJarTask.get().outputs.files.first()
-
-					val command = mutableListOf("java", "-jar")
-					if (extension.forkProperties.isPresent) {
-						val element = extension.forkProperties.get()
-						if (element is String) {
-							val elements = element
-								.split("-D")
-								.filter { s -> s.isNotEmpty() }
-								.map { "-D${it.trim()}" }
-							command.addAll(elements)
-						} else if (element is Properties) {
-							element.toMap().map { r -> "-D${r.key}=${r.value}" }.forEach { p -> command.add(p) }
-						} else {
-							LOGGER.warn("Failed to use the value set for 'forkProprerties'. Only String and Properties objects are supported.")
-						}
-					}
-					command.add("$bootJar")
-
-					fork.commandLine = command
+					fork.commandLine = listOf(
+						"java",
+						"-jar"
+					) + extractProperties(extension.forkProperties) + listOf("$bootJar")
 					true
 				}
 			}
@@ -56,16 +44,36 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			val stopForkedSpringBoot = project.tasks.register(FINALIZER_TASK_NAME) {
 				it.dependsOn(forkedSpringBoot)
 				it.doLast {
-					forkedSpringBoot.get().processHandle.abort();
+					forkedSpringBoot.get().processHandle.abort()
 				}
 			}
 
 			// This is my task. Before I can run it I have to run the dependent tasks
-			project.tasks.register(OPEN__API_TASK_NAME, OpenApiGeneratorTask::class.java) { openApiGenTask ->
+			project.tasks.register(
+				OPEN__API_TASK_NAME,
+				OpenApiGeneratorTask::class.java
+			) { openApiGenTask ->
 				openApiGenTask.dependsOn(forkedSpringBoot)
 				openApiGenTask.finalizedBy(stopForkedSpringBoot)
 			}
 		}
 
 	}
+
+	private fun extractProperties(forkProperties: Property<Any>) =
+		if (forkProperties.isPresent) {
+			when (val element = forkProperties.get()) {
+				is String ->
+					element.split("-D")
+						.filter { it.isNotEmpty() }
+						.map { "-D${it.trim()}" }
+				is Properties ->
+					element
+						.map { "-D${it.key}=${it.value}" }
+				else -> {
+					logger.warn("Failed to use the value set for 'forkProperties'. Only String and Properties objects are supported.")
+					emptyList()
+				}
+			}
+		} else emptyList()
 }
