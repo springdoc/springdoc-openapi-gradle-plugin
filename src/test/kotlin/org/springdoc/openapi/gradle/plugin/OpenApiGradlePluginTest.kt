@@ -21,11 +21,11 @@ class OpenApiGradlePluginTest {
     private val projectBuildDir = File(projectTestDir, "build")
 
     private val baseBuildGradle = """plugins {
+            id 'java'
             id 'org.springframework.boot' version '2.2.0.RELEASE'
             id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-            id 'java'
-            id "com.github.johnrengelman.processes" version "0.5.0"
-            id("org.springdoc.openapi-gradle-plugin")
+            id 'com.github.johnrengelman.processes' version '0.5.0'
+            id 'org.springdoc.openapi-gradle-plugin'
         }
         
         group = 'com.example'
@@ -38,7 +38,7 @@ class OpenApiGradlePluginTest {
         
         dependencies {
             implementation 'org.springframework.boot:spring-boot-starter-web'
-            implementation group: 'org.springdoc', name: 'springdoc-openapi-webmvc-core', version: '1.4.0'
+            implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.4.0'
         }
     """.trimIndent()
 

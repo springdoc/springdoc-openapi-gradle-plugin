@@ -5,6 +5,7 @@ plugins {
 	kotlin("jvm") version "1.4.31"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
+	id("io.gitlab.arturbosch.detekt") version "1.16.0"
 }
 
 group = "org.springdoc"
@@ -50,6 +51,8 @@ dependencies {
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.5")
+
+	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
 }
 
 gradlePlugin {
@@ -69,13 +72,23 @@ pluginBundle {
 	tags = listOf("springdoc", "openapi", "swagger")
 }
 
+val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "1.${jvmVersion.toString()}"
 	}
 }
 
 tasks.withType<Test>().configureEach {
 	useJUnitPlatform()
 	maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+}
+
+detekt {
+	config = files("config/detekt/detekt.yml")
+	parallel = true
+}
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+	jvmTarget = "1.${jvmVersion.toString()}"
 }

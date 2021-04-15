@@ -13,7 +13,7 @@ public class ProfileController {
     String profileRelatedValue;
 
     @GetMapping("/")
-    public String special(){
+    public String special() {
         return profileRelatedValue;
     }
 }

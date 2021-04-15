@@ -12,16 +12,16 @@ public class GroupedConfiguration {
     @Bean
     public GroupedOpenApi groupA() {
         return GroupedOpenApi.builder()
-                             .group("groupA")
-                             .pathsToMatch("/groupA/**")
-                             .build();
+                .group("groupA")
+                .pathsToMatch("/groupA/**")
+                .build();
     }
 
     @Bean
     public GroupedOpenApi groupB() {
         return GroupedOpenApi.builder()
-                             .group("groupB")
-                             .pathsToMatch("/groupB/**")
-                             .build();
+                .group("groupB")
+                .pathsToMatch("/groupB/**")
+                .build();
     }
 }
