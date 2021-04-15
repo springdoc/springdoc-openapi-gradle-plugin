@@ -22,8 +22,8 @@ class OpenApiGradlePluginTest {
 
     private val baseBuildGradle = """plugins {
             id 'java'
-            id 'org.springframework.boot' version '2.2.0.RELEASE'
-            id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+            id 'org.springframework.boot' version '2.4.5'
+            id 'io.spring.dependency-management' version '1.0.11.RELEASE'
             id 'com.github.johnrengelman.processes' version '0.5.0'
             id 'org.springdoc.openapi-gradle-plugin'
         }
