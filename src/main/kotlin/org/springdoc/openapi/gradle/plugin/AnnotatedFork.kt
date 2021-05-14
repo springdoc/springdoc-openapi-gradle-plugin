@@ -15,29 +15,29 @@ import org.gradle.process.CommandLineArgumentProvider
  * Groovy methods that get added to Groovy classes via bytecode manipulation.
  */
 open class AnnotatedFork : Fork() {
-	private var metaClass: MetaClass? = null
+    private var metaClass: MetaClass? = null
 
-	override fun invokeMethod(method: String?, args: Any?): Any? {
-		return InvokerHelper.invokeMethod(this, method, args)
-	}
+    override fun invokeMethod(method: String?, args: Any?): Any? {
+        return InvokerHelper.invokeMethod(this, method, args)
+    }
 
-	override fun getProperty(property: String?): Any? {
-		return InvokerHelper.getProperty(this, property)
-	}
+    override fun getProperty(property: String?): Any? {
+        return InvokerHelper.getProperty(this, property)
+    }
 
-	override fun getMetaClass(): MetaClass? {
-		if (metaClass == null) {
-			metaClass = InvokerHelper.getMetaClass(javaClass)
-		}
-		return metaClass
-	}
+    override fun getMetaClass(): MetaClass? {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(javaClass)
+        }
+        return metaClass
+    }
 
-	override fun setMetaClass(newMetaClass: MetaClass?) {
-		metaClass = newMetaClass
-	}
+    override fun setMetaClass(newMetaClass: MetaClass?) {
+        metaClass = newMetaClass
+    }
 
-	@Internal
-	override fun getArgumentProviders(): MutableList<CommandLineArgumentProvider>? {
-		return super.getArgumentProviders()
-	}
+    @Internal
+    override fun getArgumentProviders(): MutableList<CommandLineArgumentProvider>? {
+        return super.getArgumentProviders()
+    }
 }
