@@ -14,3 +14,6 @@ const val DEFAULT_WAIT_TIME_IN_SECONDS = 30
 
 const val SPRING_BOOT_PLUGIN = "org.springframework.boot"
 const val PROCESS_PLUGIN = "com.github.johnrengelman.processes"
+
+const val PROPS_LAUNCHER_CLASS = "org.springframework.boot.loader.PropertiesLauncher"
+const val CLASS_PATH_PROPERTY_NAME = "java.class.path"

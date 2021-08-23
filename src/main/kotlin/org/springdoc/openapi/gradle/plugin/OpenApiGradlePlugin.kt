@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.springdoc.openapi.gradle.plugin
 
 import org.gradle.api.Plugin
@@ -30,7 +32,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
                 fork.onlyIf {
                     val bootJar = bootJarTask.get().outputs.files.first()
-                    fork.commandLine = listOf("java", "-jar") + extractProperties(extension.forkProperties) + listOf("$bootJar")
+                    fork.commandLine = listOf("java", "-cp") +
+                        listOf("$bootJar") + extractProperties(extension.forkProperties) + listOf(PROPS_LAUNCHER_CLASS)
                     true
                 }
             }
@@ -56,8 +59,10 @@ open class OpenApiGradlePlugin : Plugin<Project> {
                 is String -> element
                     .split("-D")
                     .filter { it.isNotEmpty() }
+                    .filterNot { it.startsWith(CLASS_PATH_PROPERTY_NAME, true) }
                     .map { "-D${it.trim()}" }
                 is Properties -> element
+                    .filterNot { it.key.toString().startsWith(CLASS_PATH_PROPERTY_NAME, true) }
                     .map { "-D${it.key}=${it.value}" }
                 else -> {
                     logger.warn("Failed to use the value set for 'forkProperties'. Only String and Properties objects are supported.")
