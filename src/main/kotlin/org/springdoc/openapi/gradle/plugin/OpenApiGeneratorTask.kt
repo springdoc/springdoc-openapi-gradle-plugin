@@ -87,7 +87,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
     private fun prettifyJson(response: Response): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val googleJsonObject = gson.fromJson(response.jsonObject.toString(), JsonObject::class.java)
+        val googleJsonObject = gson.fromJson(response.text, JsonObject::class.java)
         return gson.toJson(googleJsonObject)
     }
 }
