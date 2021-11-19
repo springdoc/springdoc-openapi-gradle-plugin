@@ -6,10 +6,21 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
+import java.io.File
 import java.util.*
 
 open class OpenApiGradlePlugin : Plugin<Project> {
     private val logger = Logging.getLogger(OpenApiGradlePlugin::class.java)
+
+    companion object {
+        /** the full path of the Java executable file of the current process or just "java" if it can not be recognized */
+        private val javaExecutable: String by lazy {
+            val javaHome = System.getProperty("java.home")
+            val binDir = File(javaHome, "bin")
+            listOf("java", "java.exe").stream().map { fileName -> File(binDir, fileName) }.toList()
+                .firstOrNull { javaExecutableFile -> javaExecutableFile.exists() }?.absolutePath ?: "java"
+        }
+    }
 
     override fun apply(project: Project) {
         // Run time dependency on the following plugins
@@ -32,7 +43,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
                 fork.onlyIf {
                     val bootJar = bootJarTask.get().outputs.files.first()
-                    fork.commandLine = listOf("java", "-cp") +
+                    fork.commandLine = listOf(javaExecutable, "-cp") +
                         listOf("$bootJar") + extractProperties(extension.forkProperties) + listOf(PROPS_LAUNCHER_CLASS)
                     true
                 }
