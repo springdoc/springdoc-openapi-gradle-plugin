@@ -23,6 +23,10 @@ repositories {
 		url = uri("https://repo.spring.io/libs-release/")
 	}
 	gradlePluginPortal()
+	maven {
+		name = "Gradle Plugins Maven Repository"
+		url = uri("https://plugins.gradle.org/m2/")
+	}
 }
 
 publishing {
