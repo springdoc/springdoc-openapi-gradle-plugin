@@ -11,7 +11,7 @@ The plugin does this with help of springdoc-openapi-core.
 Compatibility Notes
 -------------------
 
-The plugin is built on Gradle version 6.4.1. 
+The plugin is built on Gradle version 7.0. 
 
 Dependencies
 ------------
