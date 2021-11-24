@@ -49,7 +49,8 @@ dependencies {
 	implementation("khttp:khttp:1.0.0")
 	implementation("com.google.code.gson:gson:2.8.6")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
-	implementation(files("$projectDir/libs/gradle-processes-0.5.0.jar"))
+	implementation("com.github.psxpaul:gradle-execfork-plugin:0.1.15")
+	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
 
 	testImplementation(gradleTestKit())
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
