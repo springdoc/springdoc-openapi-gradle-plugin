@@ -15,12 +15,10 @@ The plugin is built on Gradle version 6.4.1.
 
 Dependencies
 ------------
-This plugin has a runtime dependency on the the following plugins:
+This plugin has a runtime dependency on the following plugins:
 
 1. Spring Boot Gradle plugin - `org.springframework.boot`
-2. Gradle process plugin - `com.github.johnrengelman.processes`
-
-Hence these plugins also needs to be added to your Gradle builds.
+2. Gradle process plugin - `com.github.psxpaul.execfork`
 
 Note: You will also need the springdoc-core jar file to be present in your Spring Boot application.
 
@@ -32,7 +30,6 @@ Gradle Groovy DSL
 ```groovy
 plugins {
       id "org.springframework.boot" version "2.3.0.RELEASE"
-      id "com.github.johnrengelman.processes" version "0.5.0"
       id "org.springdoc.openapi-gradle-plugin" version "1.3.3"
 }
 ```
@@ -41,7 +38,6 @@ Gradle Kotlin DSL
 ```groovy
 plugins {
     id("org.springframework.boot") version "2.3.0.RELEASE"
-    id("com.github.johnrengelman.processes") version "0.5.0"
     id("org.springdoc.openapi-gradle-plugin") version "1.3.3"
 }
 ```
