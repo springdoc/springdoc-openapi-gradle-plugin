@@ -24,7 +24,6 @@ class OpenApiGradlePluginTest {
             id 'java'
             id 'org.springframework.boot' version '2.4.5'
             id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-            id 'com.github.johnrengelman.processes' version '0.5.0'
             id 'org.springdoc.openapi-gradle-plugin'
         }
         
@@ -89,11 +88,11 @@ class OpenApiGradlePluginTest {
     }
 
     @Test
-    fun `using forked properties`() {
+    fun `using properties`() {
         buildFile.writeText(
             """$baseBuildGradle
-            openApi{
-                forkProperties = "-Dspring.profiles.active=multiple-endpoints -Dsome.second.property=someValue"
+            bootRun {
+                args = ["--spring.profiles.active=multiple-endpoints", "--some.second.property=someValue"]
             }
         """.trimMargin()
         )
@@ -106,8 +105,8 @@ class OpenApiGradlePluginTest {
     fun `using forked properties via System properties`() {
         buildFile.writeText(
             """$baseBuildGradle
-            openApi{
-                forkProperties = System.properties
+            bootRun {
+                systemProperties = System.properties
             }
         """.trimMargin()
         )
@@ -120,8 +119,10 @@ class OpenApiGradlePluginTest {
     fun `configurable wait time`() {
         buildFile.writeText(
             """$baseBuildGradle
-            openApi{
-                forkProperties = "-Dspring.profiles.active=slower"
+           bootRun {
+                args = ["--spring.profiles.active=slower"]
+            }
+             openApi{
                 waitTimeInSeconds = 60
             }
         """.trimMargin()
@@ -135,9 +136,11 @@ class OpenApiGradlePluginTest {
     fun `using different api url`() {
         buildFile.writeText(
             """$baseBuildGradle
+           bootRun {
+                args = ["--spring.profiles.active=different-url"]
+            }
             openApi{
                 apiDocsUrl = "http://localhost:8080/secret-api-docs"
-                forkProperties = "-Dspring.profiles.active=different-url"
             }
         """.trimMargin()
         )
@@ -153,10 +156,12 @@ class OpenApiGradlePluginTest {
 
         buildFile.writeText(
             """$baseBuildGradle
+           bootRun {
+                args = ["--spring.profiles.active=multiple-grouped-apis"]
+            }
             openApi{
                 groupedApiMappings = ["http://localhost:8080/v3/api-docs/groupA": "$outputJsonFileNameGroupA",
                                       "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
-                forkProperties = "-Dspring.profiles.active=multiple-grouped-apis"
             }
         """.trimMargin()
         )
@@ -174,12 +179,14 @@ class OpenApiGradlePluginTest {
 
         buildFile.writeText(
             """$baseBuildGradle
+           bootRun {
+                args = ["--spring.profiles.active=multiple-grouped-apis"]
+            }
             openApi{
                 apiDocsUrl = "http://localhost:8080/v3/api-docs/groupA"
                 outputFileName = "$outputJsonFileNameSingleGroupA"
                 groupedApiMappings = ["http://localhost:8080/v3/api-docs/groupA": "$outputJsonFileNameGroupA",
                                       "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
-                forkProperties = "-Dspring.profiles.active=multiple-grouped-apis"
             }
         """.trimMargin()
         )
