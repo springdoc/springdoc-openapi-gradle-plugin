@@ -74,7 +74,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
             logger.info("Generating OpenApi Docs..")
             val response: Response = khttp.get(url)
 
-            val isYaml = url.toLowerCase().contains(".yaml") || url.toLowerCase().endsWith("/yaml")
+            val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml$"))
             val apiDocs = if (isYaml) response.text else prettifyJson(response)
 
             val outputFile = outputDir.file(fileName).get().asFile
