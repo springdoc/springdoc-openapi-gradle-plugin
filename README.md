@@ -6,8 +6,6 @@
 Gradle plugin for springdoc-openapi.
 
 This plugin allows you to generate an OpenAPI 3 specification for a Spring Boot application from a Gradle build. 
-The plugin does this with help of springdoc-openapi-core.
-
 Compatibility Notes
 -------------------
 
@@ -20,7 +18,6 @@ This plugin has a runtime dependency on the following plugins:
 1. Spring Boot Gradle plugin - `org.springframework.boot`
 2. Gradle process plugin - `com.github.psxpaul.execfork`
 
-Note: You will also need the springdoc-core jar file to be present in your Spring Boot application.
 
 How To Use
 ----------
