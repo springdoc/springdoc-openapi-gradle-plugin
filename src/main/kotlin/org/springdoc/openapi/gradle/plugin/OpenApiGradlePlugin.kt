@@ -42,6 +42,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
                         fork.main = bootRun.mainClass.get()
                         fork.jvmArgs = bootRun.jvmArgs
                         fork.environment = bootRun.environment
+						if(org.gradle.internal.jvm.Jvm.current().toString().startsWith("1.8"))
+							fork.killDescendants = false
                         true
                     }
                 }

@@ -49,7 +49,7 @@ dependencies {
 	implementation("khttp:khttp:1.0.0")
 	implementation("com.google.code.gson:gson:2.8.6")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
-	implementation("com.github.psxpaul:gradle-execfork-plugin:0.1.15")
+	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
 
 	testImplementation(gradleTestKit())
