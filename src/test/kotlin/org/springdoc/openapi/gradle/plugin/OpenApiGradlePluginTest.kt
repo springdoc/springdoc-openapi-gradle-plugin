@@ -2,6 +2,10 @@ package org.springdoc.openapi.gradle.plugin
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.TextNode
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.gradle.internal.impldep.org.apache.commons.lang.RandomStringUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -19,6 +23,9 @@ class OpenApiGradlePluginTest {
     private val projectTestDir = Files.createTempDirectory("acceptance-project").toFile()
     private val buildFile = File(projectTestDir, "build.gradle")
     private val projectBuildDir = File(projectTestDir, "build")
+
+    private val pathsField = "paths"
+    private val openapiField = "openapi"
 
     private val baseBuildGradle = """plugins {
             id 'java'
@@ -150,6 +157,24 @@ class OpenApiGradlePluginTest {
     }
 
     @Test
+    fun `yaml generation`() {
+        val outputYamlFileName = "openapi.yaml"
+
+        buildFile.writeText(
+            """$baseBuildGradle
+                
+            openApi{
+                apiDocsUrl = "http://localhost:8080/v3/api-docs.yaml"
+                outputFileName = "$outputYamlFileName"
+            }
+        """.trimMargin()
+        )
+
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiYamlFile(1, outputYamlFileName)
+    }
+
+    @Test
     fun `using multiple grouped apis`() {
         val outputJsonFileNameGroupA = "openapi-groupA.json"
         val outputJsonFileNameGroupB = "openapi-groupB.json"
@@ -169,6 +194,28 @@ class OpenApiGradlePluginTest {
         assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
         assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
         assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
+    }
+
+    @Test
+    fun `using multiple grouped apis with yaml`() {
+        val outputYamlFileNameGroupA = "openapi-groupA.yaml"
+        val outputYamlFileNameGroupB = "openapi-groupB.yaml"
+
+        buildFile.writeText(
+            """$baseBuildGradle
+           bootRun {
+                args = ["--spring.profiles.active=multiple-grouped-apis"]
+            }
+            openApi{
+                groupedApiMappings = ["http://localhost:8080/v3/api-docs.yaml/groupA": "$outputYamlFileNameGroupA",
+                                      "http://localhost:8080/v3/api-docs.yaml/groupB": "$outputYamlFileNameGroupB"]
+            }
+        """.trimMargin()
+        )
+
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiYamlFile(1, outputYamlFileNameGroupA)
+        assertOpenApiYamlFile(2, outputYamlFileNameGroupB)
     }
 
     @Test
@@ -209,11 +256,23 @@ class OpenApiGradlePluginTest {
         buildDir: File = projectBuildDir
     ) {
         val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
-        assertEquals("3.0.1", openApiJson.string("openapi"))
-        assertEquals(expectedPathCount, openApiJson.obj("paths")!!.size)
+        assertEquals("3.0.1", openApiJson.string(openapiField))
+        assertEquals(expectedPathCount, openApiJson.obj(pathsField)!!.size)
     }
 
     private fun getOpenApiJsonAtLocation(path: File) = Parser.default().parse(FileReader(path)) as JsonObject
+
+    private fun assertOpenApiYamlFile(
+        expectedPathCount: Int,
+        outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
+        buildDir: File = projectBuildDir
+    ) {
+        val mapper = ObjectMapper(YAMLFactory())
+        mapper.registerModule(KotlinModule.Builder().build())
+        val node = mapper.readTree(File(buildDir, outputJsonFileName))
+        assertEquals("3.0.1", node.get(openapiField).asText())
+        assertEquals(expectedPathCount, node.get(pathsField)!!.size())
+    }
 
     private fun openApiDocsTask(result: BuildResult) = result.tasks.find { it.path.contains("generateOpenApiDocs") }!!
 }
