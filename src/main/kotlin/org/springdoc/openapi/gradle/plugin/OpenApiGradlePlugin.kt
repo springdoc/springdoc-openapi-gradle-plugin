@@ -66,6 +66,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			) { openApiGenTask ->
 				openApiGenTask.dependsOn(forkedSpringBoot)
 			}
+
+			// The forked task need to be terminated as soon as my task is finished
+			forkedSpringBoot.get().stopAfter = project.tasks.named(OPEN_API_TASK_NAME)
 		}
 	}
 }
