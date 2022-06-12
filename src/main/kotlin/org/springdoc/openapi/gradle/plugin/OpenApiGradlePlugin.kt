@@ -25,6 +25,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			val bootRunMainClassNameTask =
 				project.tasks.named(SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME)
 
+			val extension = project.extensions.findByName(EXTENSION_NAME) as OpenApiExtension
+			val customBootRun = extension.customBootRun
 			// Create a forked version spring boot run task
 			val forkedSpringBoot =
 				project.tasks.register(
@@ -36,20 +38,28 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 					fork.onlyIf {
 						val bootRun = bootRunTask.get() as BootRun
 
+						val baseSystemProperties = customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() }
+							?: bootRun.systemProperties
 						// copy all system properties, excluding those starting with `java.class.path`
-						fork.systemProperties =
-							bootRun.systemProperties.filter {
-								!it.key.startsWith(
-									CLASS_PATH_PROPERTY_NAME
-								)
-							}
+						fork.systemProperties = baseSystemProperties.filter {
+							!it.key.startsWith(
+								CLASS_PATH_PROPERTY_NAME
+							)
+						}
 
-						fork.workingDir = bootRun.workingDir
-						fork.args = bootRun.args?.toMutableList() ?: mutableListOf()
-						fork.classpath = bootRun.classpath
-						fork.main = bootRun.mainClass.get()
-						fork.jvmArgs = bootRun.jvmArgs
-						fork.environment = bootRun.environment
+						// use original bootRun parameter if the list-type customBootRun properties is empty
+						fork.workingDir = customBootRun.workingDir.asFile.orNull
+							?: bootRun.workingDir
+						fork.args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
+							?: bootRun.args?.toMutableList() ?: mutableListOf()
+						fork.classpath = customBootRun.classpath.takeIf { !it.isEmpty }
+							?: bootRun.classpath
+						fork.main = customBootRun.mainClass.orNull
+							?: bootRun.mainClass.get()
+						fork.jvmArgs = customBootRun.jvmArgs.orNull?.takeIf { it.isNotEmpty() }
+							?: bootRun.jvmArgs
+						fork.environment = customBootRun.environment.orNull?.takeIf { it.isNotEmpty() }
+							?: bootRun.environment
 						if (org.gradle.internal.jvm.Jvm.current().toString()
 								.startsWith("1.8")
 						) {
