@@ -71,29 +71,36 @@ openApi {
     outputDir.set(file("$buildDir/docs"))
     outputFileName.set("swagger.json")
     waitTimeInSeconds.set(10)
-    forkProperties.set("-Dspring.profiles.active=special")
     groupedApiMappings.set(["https://localhost:8080/v3/api-docs/groupA" to "swagger-groupA.json",
                             "https://localhost:8080/v3/api-docs/groupB" to "swagger-groupB.json"])
+    customBootRun {
+        args.set(["--spring.profiles.active=special"]) 
+    }
 }
 ```
 
-Parameter | Description | Required | Default
---------- | ----------- | -------- | -------
-`apiDocsUrl` | The URL from where the OpenAPI doc can be downloaded | No | http://localhost:8080/v3/api-docs
-`outputDir` | The output directory for the generated OpenAPI file | No | $buildDir - Your project's build dir
-`outputFileName` | The name of the output file with extension | No | openapi.json
-`waitTimeInSeconds` | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No | 30 seconds
-`forkProperties` | Any system property that you would normal need to start your spring boot application. Can either be a static string or a java Properties object | No | ""
-`groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names | No | []
+| Parameter            | Description                                                                                                                         | Required | Default                              |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------|--------------------------------------|
+| `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded                                                                                | No       | http://localhost:8080/v3/api-docs    |
+| `outputDir`          | The output directory for the generated OpenAPI file                                                                                 | No       | $buildDir - Your project's build dir |
+| `outputFileName`     | The name of the output file with extension                                                                                          | No       | openapi.json                         |
+| `waitTimeInSeconds`  | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No       | 30 seconds                           |
+| `groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names                                                  | No       | []                                   |
+| `customBootRun`      | Any bootRun property that you would normal need to start your spring boot application.                                              | No       | (N/A)                                |
 
-### Fork properties examples
-Fork properties allows you to send in anything that might be necessary to allow for the forked spring boot application that gets started
-to be able to start (profiles, other custom properties, etc etc)
+### `customBootRun` properties examples
+`customBootRun` allows you to send in the properties that might be necessary to allow for the forked spring boot application that gets started
+to be able to start (profiles, other custom properties, etc.)
+`customBootRun` allows you can specify bootRun style parameter, such as `args`, `jvmArgs`, `systemProperties` and `workingDir`.
+If you don't specify `customBootRun` parameter, this plugin uses the parameter specified to `bootRun` in Spring Boot Gradle Plugin.
 
-#### Static string
+#### Passing static args
+This allows for you to be able to just send the static properties when executing Spring application in `generateOpenApiDocs`.
 ```
 openApi {
-	forkProperties = "-Dspring.profiles.active=special -DstringPassedInForkProperites=true"
+    customBootRun {
+        args = ["--spring.profiles.active=special"] 
+    }
 }
 ```
 
@@ -105,7 +112,9 @@ This allows for you to be able to just send in whatever you need when you genera
 and as long as the config looks as follows that value will be passed into the forked spring boot application.
 ```
 openApi {
-	forkProperties = System.properties
+    customBootRun {
+         systemProperties = System.properties
+    }
 }
 ```
 

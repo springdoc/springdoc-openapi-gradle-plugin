@@ -3,7 +3,6 @@ package org.springdoc.openapi.gradle.plugin
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.TextNode
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.gradle.internal.impldep.org.apache.commons.lang.RandomStringUtils
@@ -123,6 +122,23 @@ class OpenApiGradlePluginTest {
     }
 
     @Test
+    fun `using forked properties via System properties with customBootRun`() {
+        buildFile.writeText(
+            """$baseBuildGradle
+            openApi {
+                customBootRun {
+                    systemProperties = System.properties
+                }
+            }
+        """.trimMargin()
+        )
+
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome)
+        assertOpenApiJsonFile(2)
+    }
+
+
+    @Test
     fun `configurable wait time`() {
         buildFile.writeText(
             """$baseBuildGradle
@@ -155,6 +171,24 @@ class OpenApiGradlePluginTest {
         assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
         assertOpenApiJsonFile(1)
     }
+
+    @Test
+    fun `using different api url via customBootRun`() {
+        buildFile.writeText(
+            """$baseBuildGradle
+            openApi{
+                apiDocsUrl = "http://localhost:8080/secret-api-docs"
+                customBootRun {
+                    args = ["--spring.profiles.active=different-url"]
+                }
+            }
+        """.trimMargin()
+        )
+
+        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+        assertOpenApiJsonFile(1)
+    }
+
 
     @Test
     fun `yaml generation`() {
