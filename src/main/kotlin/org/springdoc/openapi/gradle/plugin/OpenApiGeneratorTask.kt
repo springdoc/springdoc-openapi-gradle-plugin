@@ -69,8 +69,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
                 waitTimeInSeconds.get().toLong(),
                 SECONDS
             ) until {
-                val url = URL(url)
-                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+                val connection: HttpURLConnection = URL(url).openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
                 val statusCode = connection.responseCode
