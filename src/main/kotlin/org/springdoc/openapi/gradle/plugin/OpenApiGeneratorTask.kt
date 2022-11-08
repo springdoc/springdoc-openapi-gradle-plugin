@@ -77,8 +77,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
                 statusCode < MAX_HTTP_STATUS_CODE
             }
             logger.info("Generating OpenApi Docs..")
-            val url = URL(url)
-            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            val connection: HttpURLConnection = URL(url).openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
             connection.connect()
 
