@@ -2,7 +2,6 @@ package org.springdoc.openapi.gradle.plugin
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import khttp.responses.Response
 import org.awaitility.Durations
 import org.awaitility.core.ConditionTimeoutException
 import org.awaitility.kotlin.*
@@ -15,6 +14,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.net.ConnectException
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.Duration
 import java.time.temporal.ChronoUnit.SECONDS
 
@@ -63,19 +64,28 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
     private fun generateApiDocs(url: String, fileName: String) {
         try {
+            val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml(/.+)*"))
             await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
                 waitTimeInSeconds.get().toLong(),
                 SECONDS
             ) until {
-                val statusCode = khttp.get(url).statusCode
+                val url = URL(url)
+                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connect()
+                val statusCode = connection.responseCode
                 logger.trace("apiDocsUrl = {} status code = {}", url, statusCode)
                 statusCode < MAX_HTTP_STATUS_CODE
             }
             logger.info("Generating OpenApi Docs..")
-            val response: Response = khttp.get(url)
+            val url = URL(url)
+            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connect()
 
-            val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml(/.+)*"))
-            val apiDocs = if (isYaml) response.text else prettifyJson(response)
+            val response = String(connection.inputStream.readAllBytes(), Charsets.UTF_8)
+
+            val apiDocs = if (isYaml) response else prettifyJson(response)
 
             val outputFile = outputDir.file(fileName).get().asFile
             outputFile.writeText(apiDocs)
@@ -85,9 +95,9 @@ open class OpenApiGeneratorTask : DefaultTask() {
         }
     }
 
-    private fun prettifyJson(response: Response): String {
+    private fun prettifyJson(response: String): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val googleJsonObject = gson.fromJson(response.text, JsonObject::class.java)
+        val googleJsonObject = gson.fromJson(response, JsonObject::class.java)
         return gson.toJson(googleJsonObject)
     }
 }
