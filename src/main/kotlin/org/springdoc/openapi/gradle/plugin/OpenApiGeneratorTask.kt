@@ -81,7 +81,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
             connection.requestMethod = "GET"
             connection.connect()
 
-            val response = String(connection.inputStream.readAllBytes(), Charsets.UTF_8)
+            val response = String(connection.inputStream.readBytes(), Charsets.UTF_8)
 
             val apiDocs = if (isYaml) response else prettifyJson(response)
 
