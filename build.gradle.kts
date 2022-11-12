@@ -46,7 +46,6 @@ publishing {
 
 dependencies {
 	implementation(kotlin("reflect"))
-	implementation("khttp:khttp:1.0.0")
 	implementation("com.google.code.gson:gson:2.8.6")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
 	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
