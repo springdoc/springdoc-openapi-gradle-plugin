@@ -27,7 +27,7 @@ Gradle Groovy DSL
 ```groovy
 plugins {
       id "org.springframework.boot" version "2.7.0"
-      id "org.springdoc.openapi-gradle-plugin" version "1.5.0"
+      id "org.springdoc.openapi-gradle-plugin" version "1.5.1"
 }
 ```
 
@@ -35,7 +35,7 @@ Gradle Kotlin DSL
 ```groovy
 plugins {
     id("org.springframework.boot") version "2.7.0"
-    id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.5.1"
 }
 ```
 
@@ -133,7 +133,7 @@ The `groupedApiMappings` customization allows you to specify multiple URLs/file 
 2. Update the version for the plugin to match the current version found in `build.gradle.kts`
 
     ```
-    id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.5.1"
     ```
 
 3. Add the following to the spring boot apps `settings.gradle`

@@ -28,14 +28,14 @@ class OpenApiGradlePluginTest {
 
     private val baseBuildGradle = """plugins {
             id 'java'
-            id 'org.springframework.boot' version '2.4.5'
+            id 'org.springframework.boot' version '3.0.0'
             id 'io.spring.dependency-management' version '1.0.11.RELEASE'
             id 'org.springdoc.openapi-gradle-plugin'
         }
         
         group = 'com.example'
         version = '0.0.1-SNAPSHOT'
-        sourceCompatibility = '8'
+        sourceCompatibility = '17'
         
         repositories {
             mavenCentral()

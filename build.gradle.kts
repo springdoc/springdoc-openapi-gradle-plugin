@@ -1,15 +1,16 @@
 plugins {
 	`java-gradle-plugin`
-	id("com.gradle.plugin-publish") version "0.14.0"
-	id("org.sonarqube") version "3.1.1"
-	kotlin("jvm") version "1.4.31"
 	`maven-publish`
-	id("com.github.ben-manes.versions") version "0.38.0"
-	id("io.gitlab.arturbosch.detekt") version "1.16.0"
+	kotlin("jvm") version "1.8.0-Beta"
+	id ("com.palantir.idea-test-fix") version "0.1.0"
+	id("com.gradle.plugin-publish") version "0.14.0"
+	id("org.sonarqube") version "3.5.0.2730"
+	id("com.github.ben-manes.versions") version "0.44.0"
+	id("io.gitlab.arturbosch.detekt") version "1.22.0"
 }
 
 group = "org.springdoc"
-version = "1.5.0"
+version = "1.5.1"
 
 sonarqube {
 	properties {
@@ -45,20 +46,18 @@ publishing {
 }
 
 dependencies {
-	implementation(kotlin("reflect"))
-	implementation("com.google.code.gson:gson:2.8.6")
-	implementation("org.awaitility:awaitility-kotlin:4.0.3")
-	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
-	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
+	implementation("com.google.code.gson:gson:2.10")
+	implementation("org.awaitility:awaitility-kotlin:4.2.0")
+	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.1")
+	implementation("org.springframework.boot:spring-boot-gradle-plugin:3.0.0")
 
 	testImplementation(gradleTestKit())
-	testImplementation(platform("org.junit:junit-bom:5.7.1"))
-	testImplementation("org.junit.jupiter:junit-jupiter")
-	testImplementation("com.beust:klaxon:5.5")
-	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
-	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
+	testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
+	testImplementation("com.beust:klaxon:5.6")
+	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
+	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.0")
 
-	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
 }
 
 gradlePlugin {
@@ -78,23 +77,15 @@ pluginBundle {
 	tags = listOf("springdoc", "openapi", "swagger")
 }
 
-val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-	kotlinOptions {
-		jvmTarget = "1.${jvmVersion.toString()}"
-	}
-}
-
-tasks.withType<Test>().configureEach {
-	useJUnitPlatform()
-	maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+tasks{
+	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { kotlinOptions { jvmTarget = "17" } }
+	withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach { jvmTarget = "17" }
+	withType<Test>().configureEach { useJUnitPlatform() }
+	withType<Jar> { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
 }
 
 detekt {
 	config = files("config/detekt/detekt.yml")
 	parallel = true
-}
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-	jvmTarget = "1.${jvmVersion.toString()}"
 }
