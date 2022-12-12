@@ -83,7 +83,8 @@ tasks{
 	val java: String by project
 	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach { kotlinOptions { jvmTarget = java } }
 	withType<io.gitlab.arturbosch.detekt.Detekt> { jvmTarget = java }
-	withType<Test>() { useJUnitPlatform() }
+	withType<Test>().configureEach { useJUnitPlatform() }
+//	withType<Jar> { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
 }
 
 detekt {
