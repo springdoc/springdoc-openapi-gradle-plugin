@@ -48,7 +48,7 @@ publishing {
 dependencies {
 	implementation("com.google.code.gson:gson:2.10")
 	implementation("org.awaitility:awaitility-kotlin:4.2.0")
-	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.1")
+	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.2")
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.6")
 	implementation("jakarta.platform:jakarta.jakartaee-api:10.0.0")
 
