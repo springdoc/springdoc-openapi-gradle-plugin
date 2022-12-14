@@ -35,7 +35,7 @@ class OpenApiGradlePluginTest {
         
         group = 'com.example'
         version = '0.0.1-SNAPSHOT'
-        sourceCompatibility = '11'
+        sourceCompatibility = '8'
         
         repositories {
             mavenCentral()

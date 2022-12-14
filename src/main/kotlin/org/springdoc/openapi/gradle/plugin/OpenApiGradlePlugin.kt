@@ -9,7 +9,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.jvm.Jvm
 import org.springframework.boot.gradle.tasks.run.BootRun
 
-@Suppress("unused")
 open class OpenApiGradlePlugin : Plugin<Project> {
     private val logger = Logging.getLogger(OpenApiGradlePlugin::class.java)
 
