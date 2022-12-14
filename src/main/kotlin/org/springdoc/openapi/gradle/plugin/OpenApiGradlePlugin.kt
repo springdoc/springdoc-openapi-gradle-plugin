@@ -1,84 +1,95 @@
-@file:Suppress("unused")
-
 package org.springdoc.openapi.gradle.plugin
 
 import com.github.psxpaul.task.JavaExecFork
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.jvm.Jvm
 import org.springframework.boot.gradle.tasks.run.BootRun
 
 open class OpenApiGradlePlugin : Plugin<Project> {
-	private val logger = Logging.getLogger(OpenApiGradlePlugin::class.java)
+    private val logger = Logging.getLogger(OpenApiGradlePlugin::class.java)
 
-	override fun apply(project: Project) {
-		// Run time dependency on the following plugins
-		project.plugins.apply(SPRING_BOOT_PLUGIN)
-		project.plugins.apply(EXEC_FORK_PLUGIN)
+    override fun apply(project: Project) {
+        with(project) {
+            // Run time dependency on the following plugins
+            plugins.apply(SPRING_BOOT_PLUGIN)
+            plugins.apply(EXEC_FORK_PLUGIN)
 
-		project.extensions.create(EXTENSION_NAME, OpenApiExtension::class.java, project)
+            extensions.create(EXTENSION_NAME, OpenApiExtension::class.java, this)
 
-		project.afterEvaluate {
-			// The task, used to run the Spring Boot application (`bootRun`)
-			val bootRunTask = project.tasks.named(SPRING_BOOT_RUN_TASK_NAME)
-			// The task, used to resolve the application's main class (`bootRunMainClassName`)
-			val bootRunMainClassNameTask =
-				project.tasks.named(SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME)
+            afterEvaluate { generate(this) }
+        }
+    }
 
-			val extension = project.extensions.findByName(EXTENSION_NAME) as OpenApiExtension
-			val customBootRun = extension.customBootRun
-			// Create a forked version spring boot run task
-			val forkedSpringBoot =
-				project.tasks.register(
-					FORKED_SPRING_BOOT_RUN_TASK_NAME,
-					JavaExecFork::class.java
-				) { fork ->
-					fork.dependsOn(bootRunMainClassNameTask)
+    private fun generate(project: Project) = project.run {
+        springBoot3CompatibilityCheck()
 
-					fork.onlyIf {
-						val bootRun = bootRunTask.get() as BootRun
+        // The task, used to run the Spring Boot application (`bootRun`)
+        val bootRunTask = tasks.named(SPRING_BOOT_RUN_TASK_NAME)
+        // The task, used to resolve the application's main class (`bootRunMainClassName`)
+        val bootRunMainClassNameTask = tasks.find { it.name ==  SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME}
+            ?:tasks.named(SPRING_BOOT_3_RUN_MAIN_CLASS_NAME_TASK_NAME)
 
-						val baseSystemProperties = customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() }
-							?: bootRun.systemProperties
-						// copy all system properties, excluding those starting with `java.class.path`
-						fork.systemProperties = baseSystemProperties.filter {
-							!it.key.startsWith(
-								CLASS_PATH_PROPERTY_NAME
-							)
-						}
+        val extension = extensions.findByName(EXTENSION_NAME) as OpenApiExtension
+        val customBootRun = extension.customBootRun
+        // Create a forked version spring boot run task
+        val forkedSpringBoot = tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
+            fork.dependsOn(bootRunMainClassNameTask)
+            fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
+        }
 
-						// use original bootRun parameter if the list-type customBootRun properties is empty
-						fork.workingDir = customBootRun.workingDir.asFile.orNull
-							?: bootRun.workingDir
-						fork.args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
-							?: bootRun.args?.toMutableList() ?: mutableListOf()
-						fork.classpath = customBootRun.classpath.takeIf { !it.isEmpty }
-							?: bootRun.classpath
-						fork.main = customBootRun.mainClass.orNull
-							?: bootRun.mainClass.get()
-						fork.jvmArgs = customBootRun.jvmArgs.orNull?.takeIf { it.isNotEmpty() }
-							?: bootRun.jvmArgs
-						fork.environment = customBootRun.environment.orNull?.takeIf { it.isNotEmpty() }
-							?: bootRun.environment
-						if (org.gradle.internal.jvm.Jvm.current().toString()
-								.startsWith("1.8")
-						) {
-							fork.killDescendants = false
-						}
-						true
-					}
-				}
+        // This is my task. Before I can run it, I have to run the dependent tasks
+        tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
+            it.dependsOn(forkedSpringBoot)
+        }
 
-			// This is my task. Before I can run it I have to run the dependent tasks
-			project.tasks.register(
-				OPEN_API_TASK_NAME,
-				OpenApiGeneratorTask::class.java
-			) { openApiGenTask ->
-				openApiGenTask.dependsOn(forkedSpringBoot)
-			}
+        // The forked task need to be terminated as soon as my task is finished
+        forkedSpringBoot.get().stopAfter = tasks.named(OPEN_API_TASK_NAME)
+    }
 
-			// The forked task need to be terminated as soon as my task is finished
-			forkedSpringBoot.get().stopAfter = project.tasks.named(OPEN_API_TASK_NAME)
-		}
-	}
+    private fun Project.springBoot3CompatibilityCheck() {
+        val tasksNames = tasks.names
+        val boot2TaskName = "bootRunMainClassName"
+        val boot3TaskName = "resolveMainClassName"
+        if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName))
+            tasks.register(boot2TaskName) { it.dependsOn(tasks.named(boot3TaskName)) }
+    }
+
+    private fun needToFork(
+        bootRunTask: TaskProvider<Task>,
+        customBootRun: CustomBootRunAction,
+        fork: JavaExecFork
+    ): Boolean {
+        val bootRun = bootRunTask.get() as BootRun
+
+        val baseSystemProperties = customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() }
+            ?: bootRun.systemProperties
+        with(fork) {
+            // copy all system properties, excluding those starting with `java.class.path`
+            systemProperties = baseSystemProperties.filter {
+                !it.key.startsWith(CLASS_PATH_PROPERTY_NAME)
+            }
+
+            // use original bootRun parameter if the list-type customBootRun properties are empty
+            workingDir = customBootRun.workingDir.asFile.orNull
+                ?: bootRun.workingDir
+            args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
+                ?: bootRun.args?.toMutableList() ?: mutableListOf()
+            classpath = customBootRun.classpath.takeIf { !it.isEmpty }
+                ?: bootRun.classpath
+            main = customBootRun.mainClass.orNull
+                ?: bootRun.mainClass.get()
+            jvmArgs = customBootRun.jvmArgs.orNull?.takeIf { it.isNotEmpty() }
+                ?: bootRun.jvmArgs
+            environment = customBootRun.environment.orNull?.takeIf { it.isNotEmpty() }
+                ?: bootRun.environment
+            if (Jvm.current().toString().startsWith("1.8")) {
+                killDescendants = false
+            }
+        }
+        return true
+    }
 }
