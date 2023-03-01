@@ -44,7 +44,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
         // set a default value if not provided
         val defaultOutputDir = project.objects.directoryProperty()
-        defaultOutputDir.convention(project.layout.buildDirectory)
+        defaultOutputDir.convention(project.layout.buildDirectory.dir("openapi"))
 
         apiDocsUrl.convention(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
         outputFileName.convention(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))

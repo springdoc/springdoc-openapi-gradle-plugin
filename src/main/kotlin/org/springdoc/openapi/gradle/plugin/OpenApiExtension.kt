@@ -26,7 +26,6 @@ open class OpenApiExtension @Inject constructor(
 
 open class CustomBootRunAction @Inject constructor(
     objects: ObjectFactory,
-    layout: ProjectLayout,
 ) {
     val systemProperties: MapProperty<String, Any> = objects.mapProperty(String::class.java, Any::class.java)
     val workingDir: DirectoryProperty = objects.directoryProperty()
@@ -35,7 +34,4 @@ open class CustomBootRunAction @Inject constructor(
     val classpath: ConfigurableFileCollection = objects.fileCollection()
     val jvmArgs: ListProperty<String> = objects.listProperty(String::class.java)
     val environment: MapProperty<String, Any> = objects.mapProperty(String::class.java, Any::class.java)
-    init {
-        workingDir.convention(layout.buildDirectory.dir("openapi"))
-    }
 }
