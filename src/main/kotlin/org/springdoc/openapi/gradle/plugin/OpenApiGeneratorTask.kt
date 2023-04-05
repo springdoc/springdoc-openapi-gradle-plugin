@@ -2,6 +2,7 @@ package org.springdoc.openapi.gradle.plugin
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.google.gson.JsonSyntaxException
 import org.awaitility.Durations
 import org.awaitility.core.ConditionTimeoutException
 import org.awaitility.kotlin.*
@@ -95,7 +96,12 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
     private fun prettifyJson(response: String): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val googleJsonObject = gson.fromJson(response, JsonObject::class.java)
-        return gson.toJson(googleJsonObject)
+        try {
+            val googleJsonObject = gson.fromJson(response, JsonObject::class.java)
+            return gson.toJson(googleJsonObject)
+        } catch (e: RuntimeException) {
+            throw JsonSyntaxException("Failed to parse the API docs response string. " +
+                    "Please ensure that the response is in the correct format. response=$response", e)
+        }
     }
 }

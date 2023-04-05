@@ -11,8 +11,11 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileReader
 import java.nio.file.Files
@@ -46,6 +49,10 @@ class OpenApiGradlePluginTest {
             implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.13'
         }
     """.trimIndent()
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(OpenApiGradlePluginTest::class.java)
+    }
 
     @BeforeEach
     fun createTemporaryAcceptanceProjectFromTemplate() {
@@ -276,6 +283,26 @@ class OpenApiGradlePluginTest {
         assertFalse(File(projectBuildDir, outputJsonFileNameSingleGroupA).exists())
         assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
         assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
+    }
+
+    @Test
+    fun `using invalid doc url`() {
+        buildFile.writeText(
+            """$baseBuildGradle
+            openApi{
+                apiDocsUrl = "http://localhost:8080/hello/world"
+            }
+        """.trimMargin()
+        )
+
+        try {
+            openApiDocsTask(runTheBuild())
+        } catch (e: RuntimeException) {
+            logger.error(e.message)
+            assertNotNull(e.message?.lines()?.find { it.contains(
+                "Failed to parse the API docs response string. " +
+                    "Please ensure that the response is in the correct format.") })
+        }
     }
 
     private fun runTheBuild(vararg additionalArguments: String = emptyArray()) = GradleRunner.create()
