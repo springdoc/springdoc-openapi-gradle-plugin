@@ -38,6 +38,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
         // Create a forked version spring boot run task
         val forkedSpringBoot = tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
             fork.dependsOn(bootRunMainClassNameTask)
+            if (INSPECT_IC_CLASSES_TASK_NAME in tasks.names) {
+                fork.dependsOn(INSPECT_IC_CLASSES_TASK_NAME)
+            }
             fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
         }
 
