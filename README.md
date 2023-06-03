@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin.svg?branch=master)](https://travis-ci.org/springdoc/springdoc-openapi-gradle-plugin)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=springdoc_springdoc-openapi-gradle-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=springdoc_springdoc-openapi-gradle-plugin)
+[![Build Status](https://ci-cd.springdoc.org:8443/buildStatus/icon?job=springdoc-openapi-gradle-IC)](https://ci-cd.springdoc.org:8443/view/springdoc-openapi/job/springdoc-openapi-gradle-IC/)
 
 # Introducing springdoc-openapi-gradle-plugin
 
