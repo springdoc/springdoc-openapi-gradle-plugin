@@ -2,7 +2,7 @@ plugins {
 	`java-gradle-plugin`
 	id("com.gradle.plugin-publish") version "0.14.0"
 	id("org.sonarqube") version "3.1.1"
-	kotlin("jvm") version "1.4.31"
+	kotlin("jvm") version "1.8.21"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
 	id("io.gitlab.arturbosch.detekt") version "1.16.0"
