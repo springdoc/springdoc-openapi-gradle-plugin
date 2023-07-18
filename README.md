@@ -82,7 +82,7 @@ openApi {
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------|--------------------------------------|
 | `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded                                                                                | No       | http://localhost:8080/v3/api-docs    |
 | `outputDir`          | The output directory for the generated OpenAPI file                                                                                 | No       | $buildDir - Your project's build dir |
-| `outputFileName`     | The name of the output file with extension                                                                                          | No       | openapi.json                         |
+| `outputFileName`     | Specifies the output file name and format. Use extension `.yaml` for YAML output, `.json` for JSON output                           | No       | openapi.json                         |
 | `waitTimeInSeconds`  | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No       | 30 seconds                           |
 | `groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names                                                  | No       | []                                   |
 | `customBootRun`      | Any bootRun property that you would normal need to start your spring boot application.                                              | No       | (N/A)                                |
