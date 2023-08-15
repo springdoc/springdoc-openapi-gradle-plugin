@@ -77,6 +77,10 @@ gradlePlugin {
 
 val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
 
+java {
+	toolchain.languageVersion.set(jvmVersion)
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 	kotlinOptions {
 		jvmTarget = "1.$jvmVersion"
