@@ -40,17 +40,17 @@ open class OpenApiGeneratorTask : DefaultTask() {
         description = OPEN_API_TASK_DESCRIPTION
         group = GROUP_NAME
         // load my extensions
-        val extension: OpenApiExtension = project.extensions.run { getByName(EXTENSION_NAME) as OpenApiExtension }
+        val extension: OpenApiExtension = project.extensions.getByName(EXTENSION_NAME) as OpenApiExtension
 
         // set a default value if not provided
         val defaultOutputDir = project.objects.directoryProperty()
-        defaultOutputDir.set(project.buildDir)
+        defaultOutputDir.convention(project.layout.buildDirectory.dir("openapi"))
 
-        apiDocsUrl.set(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
-        outputFileName.set(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))
-        groupedApiMappings.set(extension.groupedApiMappings.getOrElse(emptyMap()))
-        outputDir.set(extension.outputDir.getOrElse(defaultOutputDir.get()))
-        waitTimeInSeconds.set(extension.waitTimeInSeconds.getOrElse(DEFAULT_WAIT_TIME_IN_SECONDS))
+        apiDocsUrl.convention(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
+        outputFileName.convention(extension.outputFileName.getOrElse(DEFAULT_OPEN_API_FILE_NAME))
+        groupedApiMappings.convention(extension.groupedApiMappings.getOrElse(emptyMap()))
+        outputDir.convention(extension.outputDir.getOrElse(defaultOutputDir.get()))
+        waitTimeInSeconds.convention(extension.waitTimeInSeconds.getOrElse(DEFAULT_WAIT_TIME_IN_SECONDS))
     }
 
     @TaskAction

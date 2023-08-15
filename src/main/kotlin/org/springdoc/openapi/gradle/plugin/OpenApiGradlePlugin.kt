@@ -18,7 +18,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
             plugins.apply(SPRING_BOOT_PLUGIN)
             plugins.apply(EXEC_FORK_PLUGIN)
 
-            extensions.create(EXTENSION_NAME, OpenApiExtension::class.java, this)
+            extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
+            tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
+            tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
 
             afterEvaluate { generate(this) }
         }
@@ -30,24 +32,24 @@ open class OpenApiGradlePlugin : Plugin<Project> {
         // The task, used to run the Spring Boot application (`bootRun`)
         val bootRunTask = tasks.named(SPRING_BOOT_RUN_TASK_NAME)
         // The task, used to resolve the application's main class (`bootRunMainClassName`)
-        val bootRunMainClassNameTask = tasks.find { it.name ==  SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME}
-            ?:tasks.named(SPRING_BOOT_3_RUN_MAIN_CLASS_NAME_TASK_NAME)
+        val bootRunMainClassNameTask = tasks.find { it.name == SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME }
+            ?: tasks.named(SPRING_BOOT_3_RUN_MAIN_CLASS_NAME_TASK_NAME)
 
         val extension = extensions.findByName(EXTENSION_NAME) as OpenApiExtension
         val customBootRun = extension.customBootRun
         // Create a forked version spring boot run task
-        val forkedSpringBoot = tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
+        val forkedSpringBoot = tasks.named(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
             fork.dependsOn(bootRunMainClassNameTask)
             fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
         }
 
         // This is my task. Before I can run it, I have to run the dependent tasks
-        tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
+        val openApiTask = tasks.named(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
             it.dependsOn(forkedSpringBoot)
         }
 
         // The forked task need to be terminated as soon as my task is finished
-        forkedSpringBoot.get().stopAfter = tasks.named(OPEN_API_TASK_NAME)
+        forkedSpringBoot.get().stopAfter = openApiTask as TaskProvider<Task>
     }
 
     private fun Project.springBoot3CompatibilityCheck() {
@@ -75,7 +77,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
             // use original bootRun parameter if the list-type customBootRun properties are empty
             workingDir = customBootRun.workingDir.asFile.orNull
-                ?: bootRun.workingDir
+                ?: fork.temporaryDir
             args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
                 ?: bootRun.args?.toMutableList() ?: mutableListOf()
             classpath = customBootRun.classpath.takeIf { !it.isEmpty }
