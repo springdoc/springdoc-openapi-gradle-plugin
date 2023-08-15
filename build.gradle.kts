@@ -2,14 +2,14 @@ plugins {
 	`java-gradle-plugin`
 	id("com.gradle.plugin-publish") version "0.14.0"
 	id("org.sonarqube") version "3.1.1"
-	kotlin("jvm") version "1.4.31"
+	kotlin("jvm") version "1.8.21"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
 	id("io.gitlab.arturbosch.detekt") version "1.16.0"
 }
 
 group = "org.springdoc"
-version = "1.6.0"
+version = "1.7.0"
 
 sonarqube {
 	properties {
@@ -46,7 +46,7 @@ publishing {
 
 dependencies {
 	implementation(kotlin("reflect"))
-	implementation("com.google.code.gson:gson:2.8.6")
+	implementation("com.google.code.gson:gson:2.8.9")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
 	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
@@ -55,7 +55,7 @@ dependencies {
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.5")
-	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
+	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
 
 	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
