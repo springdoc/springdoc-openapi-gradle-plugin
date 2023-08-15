@@ -206,6 +206,7 @@ exceptions:
       - NumberFormatException
       - ParseException
       - MalformedURLException
+      - UnknownDomainObjectException
     allowedExceptionNameRegex: '_|(ignore|expected).*'
   ThrowingExceptionFromFinally:
     active: true
@@ -230,7 +231,6 @@ exceptions:
       - IllegalMonitorStateException
       - NullPointerException
       - IndexOutOfBoundsException
-      - RuntimeException
       - Throwable
     allowedExceptionNameRegex: '_|(ignore|expected).*'
   TooGenericExceptionThrown:
@@ -325,10 +325,6 @@ formatting:
   PackageName:
     active: true
     autoCorrect: true
-  ParameterListWrapping:
-    active: true
-    autoCorrect: true
-    indentSize: 4
   SpacingAroundAngleBrackets:
     active: false
     autoCorrect: true

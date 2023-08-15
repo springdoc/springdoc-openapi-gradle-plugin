@@ -73,8 +73,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		val tasksNames = tasks.names
 		val boot2TaskName = "bootRunMainClassName"
 		val boot3TaskName = "resolveMainClassName"
-		if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName))
-			tasks.register(boot2TaskName) { it.dependsOn(tasks.named(boot3TaskName)) }
+		if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName)) {
+		    tasks.register(boot2TaskName) { it.dependsOn(tasks.named(boot3TaskName)) }
+		}
 	}
 
 	private fun needToFork(
@@ -95,7 +96,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
 			// use original bootRun parameter if the list-type customBootRun properties are empty
 			workingDir = customBootRun.workingDir.asFile.orNull
-				?: fork.temporaryDir
+				?: fork.workingDir
 			args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
 				?: bootRun.args?.toMutableList() ?: mutableListOf()
 			classpath = customBootRun.classpath.takeIf { !it.isEmpty }

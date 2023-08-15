@@ -52,7 +52,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
 		// set a default value if not provided
 		val defaultOutputDir = project.objects.directoryProperty()
-		defaultOutputDir.convention(project.layout.buildDirectory.dir("openapi"))
+		defaultOutputDir.set(project.buildDir)
 
 		apiDocsUrl.convention(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
 		outputFileName.convention(
@@ -80,8 +80,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
 	private fun generateApiDocs(url: String, fileName: String) {
 		try {
-			val isYaml =
-				url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
+			val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml(/.+)*"))
 			await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
 				waitTimeInSeconds.get().toLong(),
 				SECONDS

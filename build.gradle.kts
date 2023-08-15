@@ -2,7 +2,7 @@ plugins {
 	`java-gradle-plugin`
 	id("com.gradle.plugin-publish") version "1.2.0"
 	id("org.sonarqube") version "3.1.1"
-	kotlin("jvm") version "1.8.21"
+	kotlin("jvm") version "1.7.10"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
 	id("io.gitlab.arturbosch.detekt") version "1.16.0"
@@ -39,7 +39,11 @@ publishing {
 				uri("https://oss.sonatype.org/content/repositories/snapshots")
 			url = if (version.toString()
 					.endsWith("SNAPSHOT")
-			) snapshotsRepoUrl else releasesRepoUrl
+			) {
+			    snapshotsRepoUrl
+			} else {
+			    releasesRepoUrl
+			}
 			credentials {
 				username = System.getenv("OSSRH_USER")
 				password = System.getenv("OSSRH_PASS")
@@ -66,19 +70,20 @@ dependencies {
 }
 
 gradlePlugin {
-	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
-	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
 	plugins {
 		create("springdoc-gradle-plugin") {
 			id = "org.springdoc.openapi-gradle-plugin"
 			displayName = "A Gradle plugin for the springdoc-openapi library"
-			description =
-				" This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
-			implementationClass =
-				"org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
-			tags = listOf("springdoc", "openapi", "swagger")
+			description = " This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
+			implementationClass = "org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
 		}
 	}
+}
+
+pluginBundle {
+	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
+	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
+	tags = listOf("springdoc", "openapi", "swagger")
 }
 
 val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
