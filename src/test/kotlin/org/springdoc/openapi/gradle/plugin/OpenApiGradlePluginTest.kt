@@ -22,14 +22,14 @@ import java.nio.file.Files
 
 class OpenApiGradlePluginTest {
 
-    private val projectTestDir = Files.createTempDirectory("acceptance-project").toFile()
-    private val buildFile = File(projectTestDir, "build.gradle")
-    private val projectBuildDir = File(projectTestDir, "build")
+	private val projectTestDir = Files.createTempDirectory("acceptance-project").toFile()
+	private val buildFile = File(projectTestDir, "build.gradle")
+	private val projectBuildDir = File(projectTestDir, "build")
 
-    private val pathsField = "paths"
-    private val openapiField = "openapi"
+	private val pathsField = "paths"
+	private val openapiField = "openapi"
 
-    private val baseBuildGradle = """plugins {
+	private val baseBuildGradle = """plugins {
             id 'java'
             id 'org.springframework.boot' version '2.7.6'
             id 'io.spring.dependency-management' version '1.1.15.RELEASE'
@@ -50,105 +50,113 @@ class OpenApiGradlePluginTest {
         }
     """.trimIndent()
 
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(OpenApiGradlePluginTest::class.java)
-    }
+	companion object {
+		val logger: Logger = LoggerFactory.getLogger(OpenApiGradlePluginTest::class.java)
+	}
 
-    @BeforeEach
-    fun createTemporaryAcceptanceProjectFromTemplate() {
-        File(javaClass.classLoader.getResource("acceptance-project")!!.path).copyRecursively(projectTestDir)
-    }
+	@BeforeEach
+	fun createTemporaryAcceptanceProjectFromTemplate() {
+		File(javaClass.classLoader.getResource("acceptance-project")!!.path).copyRecursively(
+			projectTestDir
+		)
+	}
 
-    @Test
-    fun `default build no options`() {
-        buildFile.writeText(baseBuildGradle)
+	@Test
+	fun `default build no options`() {
+		buildFile.writeText(baseBuildGradle)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
 
-    @Test
-    fun `different output dir`() {
-        val specialOutputDir = File(projectTestDir, "specialDir")
-        specialOutputDir.mkdirs()
+	@Test
+	fun `different output dir`() {
+		val specialOutputDir = File(projectTestDir, "specialDir")
+		specialOutputDir.mkdirs()
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
             openApi{
                 outputDir = file("${specialOutputDir.toURI().path}")
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1, buildDir = specialOutputDir)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1, buildDir = specialOutputDir)
+	}
 
-    @Test
-    fun `different output file name`() {
-        val specialOutputJsonFileName = RandomStringUtils.randomAlphanumeric(15)
+	@Test
+	fun `different output file name`() {
+		val specialOutputJsonFileName = RandomStringUtils.randomAlphanumeric(15)
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
             openApi{
                 outputFileName = "$specialOutputJsonFileName"
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1, specialOutputJsonFileName)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1, specialOutputJsonFileName)
+	}
 
-    @Test
-    fun `using properties`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using properties`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
             bootRun {
                 args = ["--spring.profiles.active=multiple-endpoints", "--some.second.property=someValue"]
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(3)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(3)
+	}
 
-    @Test
-    fun `using forked properties via System properties`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using forked properties via System properties`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
             bootRun {
                 systemProperties = System.properties
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome)
-        assertOpenApiJsonFile(2)
-    }
+		assertEquals(
+			TaskOutcome.SUCCESS,
+			openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome
+		)
+		assertOpenApiJsonFile(2)
+	}
 
-    @Test
-    fun `using forked properties via System properties with customBootRun`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using forked properties via System properties with customBootRun`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
             openApi {
                 customBootRun {
                     systemProperties = System.properties
                 }
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome)
-        assertOpenApiJsonFile(2)
-    }
+		assertEquals(
+			TaskOutcome.SUCCESS,
+			openApiDocsTask(runTheBuild("-Dspring.profiles.active=multiple-endpoints")).outcome
+		)
+		assertOpenApiJsonFile(2)
+	}
 
 
-    @Test
-    fun `configurable wait time`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `configurable wait time`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
            bootRun {
                 args = ["--spring.profiles.active=slower"]
             }
@@ -156,16 +164,16 @@ class OpenApiGradlePluginTest {
                 waitTimeInSeconds = 60
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
 
-    @Test
-    fun `using different api url`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using different api url`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
            bootRun {
                 args = ["--spring.profiles.active=different-url"]
             }
@@ -173,16 +181,16 @@ class OpenApiGradlePluginTest {
                 apiDocsUrl = "http://localhost:8080/secret-api-docs"
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
 
-    @Test
-    fun `using different api url via customBootRun`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using different api url via customBootRun`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
             openApi{
                 apiDocsUrl = "http://localhost:8080/secret-api-docs"
                 customBootRun {
@@ -190,38 +198,38 @@ class OpenApiGradlePluginTest {
                 }
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
 
 
-    @Test
-    fun `yaml generation`() {
-        val outputYamlFileName = "openapi.yaml"
+	@Test
+	fun `yaml generation`() {
+		val outputYamlFileName = "openapi.yaml"
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
                 
             openApi{
                 apiDocsUrl = "http://localhost:8080/v3/api-docs.yaml"
                 outputFileName = "$outputYamlFileName"
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiYamlFile(1, outputYamlFileName)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiYamlFile(1, outputYamlFileName)
+	}
 
-    @Test
-    fun `using multiple grouped apis`() {
-        val outputJsonFileNameGroupA = "openapi-groupA.json"
-        val outputJsonFileNameGroupB = "openapi-groupB.json"
+	@Test
+	fun `using multiple grouped apis`() {
+		val outputJsonFileNameGroupA = "openapi-groupA.json"
+		val outputJsonFileNameGroupB = "openapi-groupB.json"
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
            bootRun {
                 args = ["--spring.profiles.active=multiple-grouped-apis"]
             }
@@ -230,20 +238,20 @@ class OpenApiGradlePluginTest {
                                       "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
-        assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
+		assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
+	}
 
-    @Test
-    fun `using multiple grouped apis with yaml`() {
-        val outputYamlFileNameGroupA = "openapi-groupA.yaml"
-        val outputYamlFileNameGroupB = "openapi-groupB.yaml"
+	@Test
+	fun `using multiple grouped apis with yaml`() {
+		val outputYamlFileNameGroupA = "openapi-groupA.yaml"
+		val outputYamlFileNameGroupB = "openapi-groupB.yaml"
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
            bootRun {
                 args = ["--spring.profiles.active=multiple-grouped-apis"]
             }
@@ -252,21 +260,21 @@ class OpenApiGradlePluginTest {
                                       "http://localhost:8080/v3/api-docs.yaml/groupB": "$outputYamlFileNameGroupB"]
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertOpenApiYamlFile(1, outputYamlFileNameGroupA)
-        assertOpenApiYamlFile(2, outputYamlFileNameGroupB)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiYamlFile(1, outputYamlFileNameGroupA)
+		assertOpenApiYamlFile(2, outputYamlFileNameGroupB)
+	}
 
-    @Test
-    fun `using multiple grouped apis should ignore single api properties`() {
-        val outputJsonFileNameSingleGroupA = "openapi-single-groupA.json"
-        val outputJsonFileNameGroupA = "openapi-groupA.json"
-        val outputJsonFileNameGroupB = "openapi-groupB.json"
+	@Test
+	fun `using multiple grouped apis should ignore single api properties`() {
+		val outputJsonFileNameSingleGroupA = "openapi-single-groupA.json"
+		val outputJsonFileNameGroupA = "openapi-groupA.json"
+		val outputJsonFileNameGroupB = "openapi-groupB.json"
 
-        buildFile.writeText(
-            """$baseBuildGradle
+		buildFile.writeText(
+			"""$baseBuildGradle
            bootRun {
                 args = ["--spring.profiles.active=multiple-grouped-apis"]
             }
@@ -277,63 +285,69 @@ class OpenApiGradlePluginTest {
                                       "http://localhost:8080/v3/api-docs/groupB": "$outputJsonFileNameGroupB"]
             }
         """.trimMargin()
-        )
+		)
 
-        assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
-        assertFalse(File(projectBuildDir, outputJsonFileNameSingleGroupA).exists())
-        assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
-        assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
-    }
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertFalse(File(projectBuildDir, outputJsonFileNameSingleGroupA).exists())
+		assertOpenApiJsonFile(1, outputJsonFileNameGroupA)
+		assertOpenApiJsonFile(2, outputJsonFileNameGroupB)
+	}
 
-    @Test
-    fun `using invalid doc url`() {
-        buildFile.writeText(
-            """$baseBuildGradle
+	@Test
+	fun `using invalid doc url`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
             openApi{
                 apiDocsUrl = "http://localhost:8080/hello/world"
             }
         """.trimMargin()
-        )
+		)
 
-        try {
-            openApiDocsTask(runTheBuild())
-        } catch (e: RuntimeException) {
-            logger.error(e.message)
-            assertNotNull(e.message?.lines()?.find { it.contains(
-                "Failed to parse the API docs response string. " +
-                    "Please ensure that the response is in the correct format.") })
-        }
-    }
+		try {
+			openApiDocsTask(runTheBuild())
+		} catch (e: RuntimeException) {
+			logger.error(e.message)
+			assertNotNull(e.message?.lines()?.find {
+				it.contains(
+					"Failed to parse the API docs response string. " +
+							"Please ensure that the response is in the correct format."
+				)
+			})
+		}
+	}
 
-    private fun runTheBuild(vararg additionalArguments: String = emptyArray()) = GradleRunner.create()
-        .withProjectDir(projectTestDir)
-        .withArguments("clean", "generateOpenApiDocs", *additionalArguments)
-        .withPluginClasspath()
-        .build()
+	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
+		GradleRunner.create()
+			.withProjectDir(projectTestDir)
+			.withArguments("clean", "generateOpenApiDocs", *additionalArguments)
+			.withPluginClasspath()
+			.build()
 
-    private fun assertOpenApiJsonFile(
-        expectedPathCount: Int,
-        outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
-        buildDir: File = projectBuildDir
-    ) {
-        val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
-        assertEquals("3.0.1", openApiJson.string(openapiField))
-        assertEquals(expectedPathCount, openApiJson.obj(pathsField)!!.size)
-    }
+	private fun assertOpenApiJsonFile(
+		expectedPathCount: Int,
+		outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
+		buildDir: File = projectBuildDir
+	) {
+		val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
+		assertEquals("3.0.1", openApiJson.string(openapiField))
+		assertEquals(expectedPathCount, openApiJson.obj(pathsField)!!.size)
+	}
 
-    private fun getOpenApiJsonAtLocation(path: File) = Parser.default().parse(FileReader(path)) as JsonObject
+	private fun getOpenApiJsonAtLocation(path: File) =
+		Parser.default().parse(FileReader(path)) as JsonObject
 
-    private fun assertOpenApiYamlFile(
-        expectedPathCount: Int,
-        outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
-        buildDir: File = projectBuildDir
-    ) {
-        val mapper = ObjectMapper(YAMLFactory())
-        mapper.registerModule(KotlinModule.Builder().build())
-        val node = mapper.readTree(File(buildDir, outputJsonFileName))
-        assertEquals("3.0.1", node.get(openapiField).asText())
-        assertEquals(expectedPathCount, node.get(pathsField)!!.size())
-    }
+	private fun assertOpenApiYamlFile(
+		expectedPathCount: Int,
+		outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME,
+		buildDir: File = projectBuildDir
+	) {
+		val mapper = ObjectMapper(YAMLFactory())
+		mapper.registerModule(KotlinModule.Builder().build())
+		val node = mapper.readTree(File(buildDir, outputJsonFileName))
+		assertEquals("3.0.1", node.get(openapiField).asText())
+		assertEquals(expectedPathCount, node.get(pathsField)!!.size())
+	}
 
-    private fun openApiDocsTask(result: BuildResult) = result.tasks.find { it.path.contains("generateOpenApiDocs") }!!
+	private fun openApiDocsTask(result: BuildResult) =
+		result.tasks.find { it.path.contains("generateOpenApiDocs") }!!
 }

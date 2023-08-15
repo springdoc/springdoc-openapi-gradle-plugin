@@ -33,9 +33,13 @@ publishing {
 	repositories {
 		maven {
 			// change URLs to point to your repos, e.g. http://my.org/repo
-			val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-			val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots")
-			url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+			val releasesRepoUrl =
+				uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+			val snapshotsRepoUrl =
+				uri("https://oss.sonatype.org/content/repositories/snapshots")
+			url = if (version.toString()
+					.endsWith("SNAPSHOT")
+			) snapshotsRepoUrl else releasesRepoUrl
 			credentials {
 				username = System.getenv("OSSRH_USER")
 				password = System.getenv("OSSRH_PASS")
@@ -68,8 +72,10 @@ gradlePlugin {
 		create("springdoc-gradle-plugin") {
 			id = "org.springdoc.openapi-gradle-plugin"
 			displayName = "A Gradle plugin for the springdoc-openapi library"
-			description = " This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
-			implementationClass = "org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
+			description =
+				" This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
+			implementationClass =
+				"org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
 			tags = listOf("springdoc", "openapi", "swagger")
 		}
 	}
@@ -89,7 +95,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 tasks.withType<Test>().configureEach {
 	useJUnitPlatform()
-	maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+	maxParallelForks =
+		(Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
 }
 
 detekt {

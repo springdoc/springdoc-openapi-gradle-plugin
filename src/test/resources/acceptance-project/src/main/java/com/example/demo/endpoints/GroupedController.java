@@ -8,18 +8,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("/grouped")
 public class GroupedController {
 
-    @GetMapping("/groupA")
-    public String groupA() {
-        return "groupA";
-    }
+	@GetMapping("/groupA")
+	public String groupA() {
+		return "groupA";
+	}
 
-    @GetMapping("/groupB/first")
-    public String groupB_first() {
-        return "groupB_first";
-    }
+	@GetMapping("/groupB/first")
+	public String groupB_first() {
+		return "groupB_first";
+	}
 
-    @GetMapping("/groupB/second")
-    public String groupB_second() {
-        return "groupB_second";
-    }
+	@GetMapping("/groupB/second")
+	public String groupB_second() {
+		return "groupB_second";
+	}
 }

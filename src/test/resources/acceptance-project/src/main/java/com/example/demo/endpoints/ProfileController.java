@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("/special")
 public class ProfileController {
 
-    @Value("${test.props}")
-    String profileRelatedValue;
+	@Value("${test.props}")
+	String profileRelatedValue;
 
-    @GetMapping("/")
-    public String special() {
-        return profileRelatedValue;
-    }
+	@GetMapping("/")
+	public String special() {
+		return profileRelatedValue;
+	}
 }

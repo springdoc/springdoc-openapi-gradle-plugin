@@ -1,8 +1,8 @@
 rootProject.name = "springdoc-openapi-gradle-plugin"
 
 pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
+	repositories {
+		mavenCentral()
+		gradlePluginPortal()
+	}
 }
