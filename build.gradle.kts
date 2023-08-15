@@ -1,6 +1,6 @@
 plugins {
 	`java-gradle-plugin`
-	id("com.gradle.plugin-publish") version "0.14.0"
+	id("com.gradle.plugin-publish") version "1.2.0"
 	id("org.sonarqube") version "3.1.1"
 	kotlin("jvm") version "1.8.21"
 	`maven-publish`
@@ -62,27 +62,24 @@ dependencies {
 }
 
 gradlePlugin {
+	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
+	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
 	plugins {
 		create("springdoc-gradle-plugin") {
 			id = "org.springdoc.openapi-gradle-plugin"
 			displayName = "A Gradle plugin for the springdoc-openapi library"
 			description = " This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
 			implementationClass = "org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
+			tags = listOf("springdoc", "openapi", "swagger")
 		}
 	}
-}
-
-pluginBundle {
-	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
-	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
-	tags = listOf("springdoc", "openapi", "swagger")
 }
 
 val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 	kotlinOptions {
-		jvmTarget = "1.${jvmVersion.toString()}"
+		jvmTarget = "1.$jvmVersion"
 	}
 }
 
@@ -96,5 +93,5 @@ detekt {
 	parallel = true
 }
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-	jvmTarget = "1.${jvmVersion.toString()}"
+	jvmTarget = "1.$jvmVersion"
 }
