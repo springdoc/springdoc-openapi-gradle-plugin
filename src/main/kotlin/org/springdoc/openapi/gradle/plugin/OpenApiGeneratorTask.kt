@@ -19,6 +19,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Duration
 import java.time.temporal.ChronoUnit.SECONDS
+import java.util.*
 
 private const val MAX_HTTP_STATUS_CODE = 299
 
@@ -65,7 +66,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
     private fun generateApiDocs(url: String, fileName: String) {
         try {
-            val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml(/.+)*"))
+            val isYaml = url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
             await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
                 waitTimeInSeconds.get().toLong(),
                 SECONDS

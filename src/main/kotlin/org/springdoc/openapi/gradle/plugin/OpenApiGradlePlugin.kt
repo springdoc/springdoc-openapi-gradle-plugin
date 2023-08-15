@@ -21,7 +21,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
 			tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
 
-			generate(this)
+			 generate(this)
 		}
 	}
 
@@ -31,7 +31,6 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		// The task, used to run the Spring Boot application (`bootRun`)
 		val bootRunTask = tasks.named(SPRING_BOOT_RUN_TASK_NAME)
 		// The task, used to resolve the application's main class (`bootRunMainClassName`)
-
 		val bootRunMainClassNameTask =
 			try {
 				val task=tasks.named(SPRING_BOOT_RUN_MAIN_CLASS_NAME_TASK_NAME)
@@ -46,8 +45,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		val extension = extensions.findByName(EXTENSION_NAME) as OpenApiExtension
 		val customBootRun = extension.customBootRun
 		// Create a forked version spring boot run task
-
-		val forkedSpringBoot = tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
+		val forkedSpringBoot = tasks.named(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java) { fork ->
 			fork.dependsOn(tasks.named(bootRunMainClassNameTask.name))
 			fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
 		}
@@ -65,9 +63,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		val tasksNames = tasks.names
 		val boot2TaskName = "bootRunMainClassName"
 		val boot3TaskName = "resolveMainClassName"
-		if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName)) {
+		if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName))
 			tasks.register(boot2TaskName) { it.dependsOn(tasks.named(boot3TaskName)) }
-		}
 	}
 
 	private fun needToFork(
