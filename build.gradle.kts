@@ -2,10 +2,10 @@ plugins {
 	`java-gradle-plugin`
 	id("com.gradle.plugin-publish") version "1.2.0"
 	id("org.sonarqube") version "3.1.1"
-	kotlin("jvm") version "1.7.10"
+	kotlin("jvm") version "1.8.20"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
-	id("io.gitlab.arturbosch.detekt") version "1.16.0"
+	id("io.gitlab.arturbosch.detekt") version "1.23.1"
 }
 
 group = "org.springdoc"
@@ -17,12 +17,12 @@ sonarqube {
 	}
 }
 repositories {
+	gradlePluginPortal()
 	mavenCentral()
 	maven {
 		name = "Spring Repositories"
 		url = uri("https://repo.spring.io/libs-release/")
 	}
-	gradlePluginPortal()
 	maven {
 		name = "Gradle Plugins Maven Repository"
 		url = uri("https://plugins.gradle.org/m2/")
@@ -57,7 +57,7 @@ dependencies {
 	implementation("com.google.code.gson:gson:2.8.9")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
 	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
-	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.5.6")
+	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
 
 	testImplementation(gradleTestKit())
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
@@ -66,24 +66,21 @@ dependencies {
 	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
 
-	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
 }
 
 gradlePlugin {
+	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
+	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
 	plugins {
 		create("springdoc-gradle-plugin") {
 			id = "org.springdoc.openapi-gradle-plugin"
 			displayName = "A Gradle plugin for the springdoc-openapi library"
 			description = " This plugin uses springdoc-openapi to generate an OpenAPI description at build time"
 			implementationClass = "org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin"
+			tags = listOf("springdoc", "openapi", "swagger")
 		}
 	}
-}
-
-pluginBundle {
-	website = "https://github.com/springdoc/springdoc-openapi-gradle-plugin"
-	vcsUrl = "https://github.com/springdoc/springdoc-openapi-gradle-plugin.git"
-	tags = listOf("springdoc", "openapi", "swagger")
 }
 
 val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
@@ -105,7 +102,7 @@ tasks.withType<Test>().configureEach {
 }
 
 detekt {
-	config = files("config/detekt/detekt.yml")
+	config.setFrom("config/detekt/detekt.yml")
 	parallel = true
 }
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {

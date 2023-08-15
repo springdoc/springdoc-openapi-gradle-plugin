@@ -32,7 +32,7 @@ class OpenApiGradlePluginTest {
 	private val baseBuildGradle = """plugins {
             id 'java'
             id 'org.springframework.boot' version '2.7.6'
-            id 'io.spring.dependency-management' version '1.1.15.RELEASE'
+            id 'io.spring.dependency-management' version '1.0.15.RELEASE'
             id 'org.springdoc.openapi-gradle-plugin'
         }
         
@@ -152,7 +152,6 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(2)
 	}
 
-
 	@Test
 	fun `configurable wait time`() {
 		buildFile.writeText(
@@ -203,7 +202,6 @@ class OpenApiGradlePluginTest {
 		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
 		assertOpenApiJsonFile(1)
 	}
-
 
 	@Test
 	fun `yaml generation`() {
