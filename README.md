@@ -150,4 +150,4 @@ The `groupedApiMappings` customization allows you to specify multiple URLs/file 
 
 * Thanks a lot [JetBrains](https://www.jetbrains.com/?from=springdoc-openapi) for supporting springdoc-openapi project.
 
-![JenBrains logo](https://springdoc.org/images/jetbrains.svg)
+![JetBrains logo](https://springdoc.org/img/jetbrains.svg)
