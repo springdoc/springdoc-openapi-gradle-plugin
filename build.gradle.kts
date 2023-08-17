@@ -87,6 +87,8 @@ val jvmVersion: JavaLanguageVersion = JavaLanguageVersion.of(8)
 
 java {
 	toolchain.languageVersion.set(jvmVersion)
+	// Recommended by https://docs.gradle.org/current/userguide/building_java_projects.html#sec:java_packaging
+	withSourcesJar()
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
