@@ -3,6 +3,7 @@ package org.springdoc.openapi.gradle.plugin
 import org.gradle.api.Action
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -11,6 +12,7 @@ import javax.inject.Inject
 
 open class OpenApiExtension @Inject constructor(
 	objects: ObjectFactory,
+	layout: ProjectLayout
 ) {
 	val apiDocsUrl: Property<String> = objects.property(String::class.java)
 	val outputFileName: Property<String> = objects.property(String::class.java)
@@ -20,6 +22,14 @@ open class OpenApiExtension @Inject constructor(
 		objects.mapProperty(String::class.java, String::class.java)
 	val customBootRun: CustomBootRunAction =
 		objects.newInstance(CustomBootRunAction::class.java)
+
+	init {
+		apiDocsUrl.convention(DEFAULT_API_DOCS_URL)
+		outputFileName.convention(DEFAULT_OPEN_API_FILE_NAME)
+		outputDir.convention(layout.buildDirectory)
+		waitTimeInSeconds.convention(DEFAULT_WAIT_TIME_IN_SECONDS)
+		groupedApiMappings.convention(emptyMap())
+	}
 
 	fun customBootRun(action: Action<CustomBootRunAction>) {
 		action.execute(customBootRun)
