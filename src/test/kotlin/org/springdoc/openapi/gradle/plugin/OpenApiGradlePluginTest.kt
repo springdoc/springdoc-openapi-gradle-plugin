@@ -103,6 +103,27 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `accessing the task does not break later configuration`() {
+		val specialOutputDir = File(projectTestDir, "specialDir")
+		specialOutputDir.mkdirs()
+
+		buildFile.writeText(
+			"""$baseBuildGradle
+            tasks.withType(org.springdoc.openapi.gradle.plugin.OpenApiGeneratorTask.class) {
+                dependsOn("clean")
+            }
+
+            openApi{
+                outputDir = file("${specialOutputDir.toURI().path}")
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1, buildDir = specialOutputDir)
+	}
+
+	@Test
 	fun `using properties`() {
 		buildFile.writeText(
 			"""$baseBuildGradle

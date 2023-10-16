@@ -23,7 +23,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Duration
 import java.time.temporal.ChronoUnit.SECONDS
-import java.util.*
 
 private const val MAX_HTTP_STATUS_CODE = 299
 
@@ -50,23 +49,11 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		val extension: OpenApiExtension =
 			project.extensions.getByName(EXTENSION_NAME) as OpenApiExtension
 
-		// set a default value if not provided
-		val defaultOutputDir = project.objects.directoryProperty()
-		defaultOutputDir.set(project.buildDir)
-
-		apiDocsUrl.convention(extension.apiDocsUrl.getOrElse(DEFAULT_API_DOCS_URL))
-		outputFileName.convention(
-			extension.outputFileName.getOrElse(
-				DEFAULT_OPEN_API_FILE_NAME
-			)
-		)
-		groupedApiMappings.convention(extension.groupedApiMappings.getOrElse(emptyMap()))
-		outputDir.convention(extension.outputDir.getOrElse(defaultOutputDir.get()))
-		waitTimeInSeconds.convention(
-			extension.waitTimeInSeconds.getOrElse(
-				DEFAULT_WAIT_TIME_IN_SECONDS
-			)
-		)
+		apiDocsUrl.convention(extension.apiDocsUrl)
+		outputFileName.convention(extension.outputFileName)
+		groupedApiMappings.convention(extension.groupedApiMappings)
+		outputDir.convention(extension.outputDir)
+		waitTimeInSeconds.convention(extension.waitTimeInSeconds)
 	}
 
 	@TaskAction
