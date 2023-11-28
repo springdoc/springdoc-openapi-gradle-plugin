@@ -17,13 +17,23 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.io.FileInputStream
 import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.KeyStore
+import java.security.SecureRandom
 import java.time.Duration
 import java.time.temporal.ChronoUnit.SECONDS
+import java.util.Locale
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.KeyManager
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+
 
 private const val MAX_HTTP_STATUS_CODE = 299
 
@@ -40,9 +50,17 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
 	@get:OutputDirectory
 	val outputDir: DirectoryProperty = project.objects.directoryProperty()
+
 	@get:Internal
-	val waitTimeInSeconds: Property<Int> =
-		project.objects.property(Int::class.java)
+	val waitTimeInSeconds: Property<Int> = project.objects.property(Int::class.java)
+
+	@get:Optional
+	@get:Input
+	val trustStore: Property<String> = project.objects.property(String::class.java)
+
+	@get:Optional
+	@get:Input
+	val trustStorePassword: Property<CharArray> = project.objects.property(CharArray::class.java)
 
 	init {
 		description = OPEN_API_TASK_DESCRIPTION
@@ -56,6 +74,8 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		groupedApiMappings.convention(extension.groupedApiMappings)
 		outputDir.convention(extension.outputDir)
 		waitTimeInSeconds.convention(extension.waitTimeInSeconds)
+		trustStore.convention(extension.trustStore)
+		trustStorePassword.convention(extension.trustStorePassword)
 	}
 
 	@TaskAction
@@ -69,20 +89,23 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
 	private fun generateApiDocs(url: String, fileName: String) {
 		try {
-			val isYaml = url.toLowerCase().matches(Regex(".+[./]yaml(/.+)*"))
+			val isYaml = url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
+			val sslContext = getCustomSslContext()
 			await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
 				waitTimeInSeconds.get().toLong(),
 				SECONDS
 			) until {
+				HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
 				val connection: HttpURLConnection =
 					URL(url).openConnection() as HttpURLConnection
 				connection.requestMethod = "GET"
 				connection.connect()
 				val statusCode = connection.responseCode
-				logger.trace("apiDocsUrl = {} status code = {}", url, statusCode)
+				logger.debug("apiDocsUrl = {} status code = {}", url, statusCode)
 				statusCode < MAX_HTTP_STATUS_CODE
 			}
 			logger.info("Generating OpenApi Docs..")
+			HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
 			val connection: HttpURLConnection =
 				URL(url).openConnection() as HttpURLConnection
 			connection.requestMethod = "GET"
@@ -101,6 +124,24 @@ open class OpenApiGeneratorTask : DefaultTask() {
 			)
 			throw GradleException("Unable to connect to $url waited for ${waitTimeInSeconds.get()} seconds")
 		}
+	}
+
+	private fun getCustomSslContext(): SSLContext {
+		if (trustStore.isPresent) {
+			logger.debug("Reading truststore: ${trustStore.get()}")
+			FileInputStream(trustStore.get()).use { truststoreFile ->
+				val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+				val truststore = KeyStore.getInstance(KeyStore.getDefaultType())
+				truststore.load(truststoreFile, trustStorePassword.get())
+				trustManagerFactory.init(truststore)
+				val sslContext: SSLContext = SSLContext.getInstance("TLSv1.2")
+				val keyManagers = arrayOf<KeyManager>()
+				sslContext.init(keyManagers, trustManagerFactory.trustManagers, SecureRandom())
+
+				return sslContext
+			}
+		}
+		return SSLContext.getDefault()
 	}
 
 	private fun prettifyJson(response: String): String {
