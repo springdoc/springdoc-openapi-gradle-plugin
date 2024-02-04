@@ -5,9 +5,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.jvm.Jvm
 import org.springframework.boot.gradle.tasks.run.BootRun
+import java.util.stream.Collectors
 
 open class OpenApiGradlePlugin : Plugin<Project> {
 
@@ -17,9 +22,14 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			plugins.apply(SPRING_BOOT_PLUGIN)
 			plugins.apply(EXEC_FORK_PLUGIN)
 
-			extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
+			val extension = extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
 			tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
 			tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
+			tasks.register(OPEN_API_CLEAN_TASK_NAME, Delete::class.java){
+				it.group = GROUP_NAME
+				it.description = OPEN_API_CLEAN_TASK_DESCRIPTION
+				it.delete = filesToClean(extension)
+			}
 
 			generate(this)
 		}
@@ -112,5 +122,17 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			}
 		}
 		return true
+	}
+
+	private fun filesToClean(extension: OpenApiExtension):Set<String> {
+		val fileNames = if (extension.groupedApiMappings.isPresent && extension.groupedApiMappings.get().isNotEmpty()) {
+			extension.groupedApiMappings.get().values
+		} else {
+			listOf(extension.outputFileName.get())
+		}
+
+		return fileNames.stream().map { fileName ->
+			extension.outputDir.file(fileName).get().asFile.absolutePath
+		}.collect(Collectors.toSet())
 	}
 }
