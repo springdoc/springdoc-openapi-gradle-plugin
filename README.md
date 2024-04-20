@@ -82,17 +82,24 @@ openApi {
     customBootRun {
         args.set(["--spring.profiles.active=special"]) 
     }
+    
+    requestHeaders = [
+       "x-forwarded-host": "custom-host",
+       "x-forwarded-port": "7000"
+    ]
 }
 ```
 
-| Parameter            | Description                                                                                                                         | Required | Default                              |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------|--------------------------------------|
-| `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded. If the url ends with `.yaml`, output will YAML format.                                                                                 | No       | http://localhost:8080/v3/api-docs    |
-| `outputDir`          | The output directory for the generated OpenAPI file                                                                                 | No       | $buildDir - Your project's build dir |
-| `outputFileName`     | Specifies the output file name.                            | No       | openapi.json                         |
+| Parameter            | Description                                                                                                                | Required | Default                              |
+|----------------------|----------------------------------------------------------------------------------------------------------------------------|----------|--------------------------------------|
+| `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded. If the url ends with `.yaml`, output will YAML format.               | No       | http://localhost:8080/v3/api-docs    |
+| `outputDir`          | The output directory for the generated OpenAPI file                                                                        | No       | $buildDir - Your project's build dir |
+| `outputFileName`     | Specifies the output file name.                                                                                            | No       | openapi.json                         |
 | `waitTimeInSeconds`  | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No       | 30 seconds                           |
-| `groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names                                                  | No       | []                                   |
-| `customBootRun`      | Any bootRun property that you would normal need to start your spring boot application.                                              | No       | (N/A)                                |
+| `groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names                                         | No       | []                                   |
+| `customBootRun`      | Any bootRun property that you would normal need to start your spring boot application.                                     | No       | (N/A)                                |
+| `requestHeaders`     | customize Generated server url, relies on `server.forward-headers-strategy=framework`                                      | No       | (N/A)                                |
+
 
 ### `customBootRun` properties examples
 

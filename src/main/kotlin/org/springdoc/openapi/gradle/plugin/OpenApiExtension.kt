@@ -20,6 +20,8 @@ open class OpenApiExtension @Inject constructor(
 	val waitTimeInSeconds: Property<Int> = objects.property(Int::class.java)
 	val groupedApiMappings: MapProperty<String, String> =
 		objects.mapProperty(String::class.java, String::class.java)
+	val requestHeaders: MapProperty<String, String> =
+		objects.mapProperty(String::class.java, String::class.java)
 	val customBootRun: CustomBootRunAction =
 		objects.newInstance(CustomBootRunAction::class.java)
 

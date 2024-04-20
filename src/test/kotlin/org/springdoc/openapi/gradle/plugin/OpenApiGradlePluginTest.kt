@@ -1,5 +1,6 @@
 package org.springdoc.openapi.gradle.plugin
 
+import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -12,6 +13,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
@@ -333,6 +335,38 @@ class OpenApiGradlePluginTest {
 				)
 			})
 		}
+	}
+
+	@Test
+	fun `adding headers for custom generated url`() {
+		val outputJsonFileName: String = DEFAULT_OPEN_API_FILE_NAME
+		val buildDir: File = projectBuildDir
+		val customHost = "custom-host"
+		val customPort = "7000"
+
+		buildFile.writeText(
+			"""$baseBuildGradle
+		    bootRun {
+                args = ["--server.forward-headers-strategy=framework"]
+            }
+            openApi{
+                outputFileName = "$outputJsonFileName"
+				requestHeaders = [
+				   "x-forwarded-host": "$customHost",
+				   "x-forwarded-port": "$customPort"
+				]
+            }
+        """.trimMargin())
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1, outputJsonFileName)
+		val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
+		val servers: JsonArray<Map<String, String>>? = openApiJson.array("servers")
+		assertTrue(
+			servers!!.contains(
+				mapOf("url" to "http://$customHost:$customPort", "description" to "Generated server url")
+			)
+		)
 	}
 
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =

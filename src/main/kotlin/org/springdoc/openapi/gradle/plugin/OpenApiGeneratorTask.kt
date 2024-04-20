@@ -38,8 +38,13 @@ open class OpenApiGeneratorTask : DefaultTask() {
 	val groupedApiMappings: MapProperty<String, String> =
 		project.objects.mapProperty(String::class.java, String::class.java)
 
+	@get:Input
+	val requestHeaders: MapProperty<String, String> =
+		project.objects.mapProperty(String::class.java, String::class.java)
+
 	@get:OutputDirectory
 	val outputDir: DirectoryProperty = project.objects.directoryProperty()
+
 	@get:Internal
 	val waitTimeInSeconds: Property<Int> =
 		project.objects.property(Int::class.java)
@@ -56,6 +61,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		groupedApiMappings.convention(extension.groupedApiMappings)
 		outputDir.convention(extension.outputDir)
 		waitTimeInSeconds.convention(extension.waitTimeInSeconds)
+		requestHeaders.convention(extension.requestHeaders)
 	}
 
 	@TaskAction
@@ -77,6 +83,10 @@ open class OpenApiGeneratorTask : DefaultTask() {
 				val connection: HttpURLConnection =
 					URL(url).openConnection() as HttpURLConnection
 				connection.requestMethod = "GET"
+				requestHeaders.get().forEach { header ->
+					connection.setRequestProperty(header.key, header.value)
+				}
+
 				connection.connect()
 				val statusCode = connection.responseCode
 				logger.trace("apiDocsUrl = {} status code = {}", url, statusCode)
@@ -86,6 +96,9 @@ open class OpenApiGeneratorTask : DefaultTask() {
 			val connection: HttpURLConnection =
 				URL(url).openConnection() as HttpURLConnection
 			connection.requestMethod = "GET"
+			requestHeaders.get().forEach { header ->
+				connection.setRequestProperty(header.key, header.value)
+			}
 			connection.connect()
 
 			val response = String(connection.inputStream.readBytes(), Charsets.UTF_8)
