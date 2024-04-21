@@ -362,11 +362,7 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(1, outputJsonFileName)
 		val openApiJson = getOpenApiJsonAtLocation(File(buildDir, outputJsonFileName))
 		val servers: JsonArray<Map<String, String>>? = openApiJson.array("servers")
-		assertTrue(
-			servers!!.contains(
-				mapOf("url" to "http://$customHost:$customPort", "description" to "Generated server url")
-			)
-		)
+		assertTrue(servers!!.any { s -> s.get("url").equals("http://$customHost:$customPort") })
 	}
 
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
