@@ -59,10 +59,13 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
 		}
 
-		// This is my task. Before I can run it, I have to run the dependent tasks
 		val openApiTask =
 			tasks.named(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
+				// This is my task. Before I can run it, I have to run the dependent tasks
 				it.dependsOn(forkedSpringBoot)
+
+				// Ensure the task inputs match those of the original application
+				it.inputs.files(bootRunTask.get().inputs.files)
 			}
 
 		// The forked task need to be terminated as soon as my task is finished
