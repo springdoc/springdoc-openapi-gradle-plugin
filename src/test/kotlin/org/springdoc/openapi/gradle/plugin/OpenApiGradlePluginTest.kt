@@ -335,10 +335,64 @@ class OpenApiGradlePluginTest {
 		}
 	}
 
+	@Test
+	fun `running the same build keeps the OpenAPI task up to date`() {
+		buildFile.writeText(
+			"""
+			$baseBuildGradle
+            openApi {}
+			""".trimMargin()
+		)
+
+		// Run the first build to generate the OpenAPI file
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+
+		// Rerunning the build does not regenerate the OpenAPI file
+		assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
+	@Test
+	fun `changing the source code regenerates the OpenAPI`() {
+		buildFile.writeText(
+			"""
+			$baseBuildGradle
+            openApi {}
+			""".trimMargin()
+		)
+
+		// Run the first build to generate the OpenAPI file
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+
+		val addedFile = projectTestDir.resolve("src/main/java/com/example/demo/endpoints/AddedController.java")
+		addedFile.createNewFile()
+		addedFile.writeText("""
+			package com.example.demo.endpoints;
+
+			import org.springframework.web.bind.annotation.GetMapping;
+			import org.springframework.web.bind.annotation.RestController;
+
+			@RestController
+			public class AddedController {
+
+				@GetMapping("/added")
+				public String added() {
+					return "Added file";
+				}
+			}
+		""".trimIndent())
+
+		// Run the same build with added source file
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(2)
+	}
+
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
-			.withArguments("clean", "generateOpenApiDocs", *additionalArguments)
+			.withArguments("generateOpenApiDocs", *additionalArguments)
 			.withPluginClasspath()
 			.build()
 
