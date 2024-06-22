@@ -96,7 +96,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
 			// use original bootRun parameter if the list-type customBootRun properties are empty
 			workingDir = customBootRun.workingDir.asFile.orNull
-				?: fork.workingDir
+				?: fork.temporaryDir
 			args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
 				?: bootRun.args?.toMutableList() ?: mutableListOf()
 			classpath = customBootRun.classpath.takeIf { !it.isEmpty }
