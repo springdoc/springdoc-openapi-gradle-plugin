@@ -9,7 +9,7 @@ application from a Gradle build.
 Compatibility Notes
 -------------------
 
-The plugin is built on Gradle version 7.0.
+The plugin is built on Gradle version 8.2.1.
 
 Dependencies
 ------------
@@ -26,7 +26,7 @@ Gradle Groovy DSL
 ```groovy
 plugins {
     id "org.springframework.boot" version "2.7.0"
-    id "org.springdoc.openapi-gradle-plugin" version "1.8.0"
+    id "org.springdoc.openapi-gradle-plugin" version "1.9.0"
 }
 ```
 
@@ -35,7 +35,7 @@ Gradle Kotlin DSL
 ```groovy
 plugins {
     id("org.springframework.boot") version "2.7.0"
-    id("org.springdoc.openapi-gradle-plugin") version "1.8.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
 ```
 
@@ -178,7 +178,7 @@ OpenAPI doc.
    in `build.gradle.kts`
 
     ```
-    id("org.springdoc.openapi-gradle-plugin") version "1.8.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     ```
 
 3. Add the following to the spring boot apps `settings.gradle`
