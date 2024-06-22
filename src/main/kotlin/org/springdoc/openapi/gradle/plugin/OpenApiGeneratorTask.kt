@@ -44,7 +44,12 @@ open class OpenApiGeneratorTask : DefaultTask() {
 	val outputFileName: Property<String> = project.objects.property(String::class.java)
 
 	@get:Input
-	val groupedApiMappings: MapProperty<String, String> = project.objects.mapProperty(String::class.java, String::class.java)
+	val groupedApiMappings: MapProperty<String, String> =
+		project.objects.mapProperty(String::class.java, String::class.java)
+
+	@get:Input
+	val requestHeaders: MapProperty<String, String> =
+		project.objects.mapProperty(String::class.java, String::class.java)
 
 	@get:OutputDirectory
 	val outputDir: DirectoryProperty = project.objects.directoryProperty()
@@ -74,6 +79,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		waitTimeInSeconds.convention(extension.waitTimeInSeconds)
 		trustStore.convention(extension.trustStore)
 		trustStorePassword.convention(extension.trustStorePassword)
+		requestHeaders.convention(extension.requestHeaders)
 	}
 
 	@TaskAction
@@ -97,9 +103,13 @@ open class OpenApiGeneratorTask : DefaultTask() {
 				val connection: HttpURLConnection =
 					URL(url).openConnection() as HttpURLConnection
 				connection.requestMethod = "GET"
+				requestHeaders.get().forEach { header ->
+					connection.setRequestProperty(header.key, header.value)
+				}
+
 				connection.connect()
 				val statusCode = connection.responseCode
-				logger.debug("apiDocsUrl = {} status code = {}", url, statusCode)
+				logger.trace("apiDocsUrl = {} status code = {}", url, statusCode)
 				statusCode < MAX_HTTP_STATUS_CODE
 			}
 			logger.info("Generating OpenApi Docs..")
@@ -107,6 +117,9 @@ open class OpenApiGeneratorTask : DefaultTask() {
 			val connection: HttpURLConnection =
 				URL(url).openConnection() as HttpURLConnection
 			connection.requestMethod = "GET"
+			requestHeaders.get().forEach { header ->
+				connection.setRequestProperty(header.key, header.value)
+			}
 			connection.connect()
 
 			val response = String(connection.inputStream.readBytes(), Charsets.UTF_8)
