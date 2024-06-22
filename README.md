@@ -9,7 +9,7 @@ application from a Gradle build.
 Compatibility Notes
 -------------------
 
-The plugin is built on Gradle version 8.2.1.
+The plugin is built on Gradle version 7.0.
 
 Dependencies
 ------------
