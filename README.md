@@ -56,7 +56,7 @@ Running the task `generateOpenApiDocs` writes the OpenAPI spec into a `openapi.j
 in your project's build dir.
 
 ```bash
-gradle clean generateOpenApiDocs
+gradle generateOpenApiDocs
 ``` 
 
 When you run the gradle task **generateOpenApiDocs**, it starts your spring boot
@@ -132,7 +132,7 @@ openApi {
 
 This allows for you to be able to just send in whatever you need when you generate docs.
 
-`./gradlew clean generateOpenApiDocs -Dspring.profiles.active=special`
+`./gradlew generateOpenApiDocs -Dspring.profiles.active=special`
 
 and as long as the config looks as follows that value will be passed into the forked
 spring boot application.
