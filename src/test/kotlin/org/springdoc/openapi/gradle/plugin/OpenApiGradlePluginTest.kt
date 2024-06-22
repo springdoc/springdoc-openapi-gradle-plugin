@@ -225,6 +225,27 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `using HTTPS api url to download api-docs`() {
+		val trustStore = File(projectTestDir, "truststore.p12")
+		buildFile.writeText(
+			"""$baseBuildGradle
+				
+            openApi{
+				trustStore = "${trustStore.absolutePath}"
+				trustStorePassword = "changeit".toCharArray()
+                apiDocsUrl = "https://127.0.0.1:8081/v3/api-docs"
+                customBootRun {
+                    args = ["--spring.profiles.active=ssl"]
+                }
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
+	@Test
 	fun `yaml generation`() {
 		val outputYamlFileName = "openapi.yaml"
 

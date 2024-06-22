@@ -25,8 +25,8 @@ Gradle Groovy DSL
 
 ```groovy
 plugins {
-      id "org.springframework.boot" version "2.7.0"
-      id "org.springdoc.openapi-gradle-plugin" version "1.8.0"
+    id "org.springframework.boot" version "2.7.0"
+    id "org.springdoc.openapi-gradle-plugin" version "1.8.0"
 }
 ```
 
@@ -73,24 +73,30 @@ openApi as follows
 
 ```kotlin
 openApi {
-    apiDocsUrl.set("https://localhost:9000/api/docs")
-    outputDir.set(file("$buildDir/docs"))
-    outputFileName.set("swagger.json")
-    waitTimeInSeconds.set(10)
-    groupedApiMappings.set(["https://localhost:8080/v3/api-docs/groupA" to "swagger-groupA.json",
-                            "https://localhost:8080/v3/api-docs/groupB" to "swagger-groupB.json"])
-    customBootRun {
-        args.set(["--spring.profiles.active=special"]) 
-    }
+	apiDocsUrl.set("https://localhost:9000/api/docs")
+	outputDir.set(file("$buildDir/docs"))
+	outputFileName.set("swagger.json")
+	waitTimeInSeconds.set(10)
+	trustStore.set("keystore/truststore.p12")
+	trustStorePassword.set("changeit".toCharArray())
+	groupedApiMappings.set(
+		["https://localhost:8080/v3/api-docs/groupA" to "swagger-groupA.json",
+			"https://localhost:8080/v3/api-docs/groupB" to "swagger-groupB.json"]
+	)
+	customBootRun {
+		args.set(["--spring.profiles.active=special"])
+	}
 }
 ```
 
 | Parameter            | Description                                                                                                                         | Required | Default                              |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------|--------------------------------------|
-| `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded. If the url ends with `.yaml`, output will YAML format.                                                                                 | No       | http://localhost:8080/v3/api-docs    |
+| `apiDocsUrl`         | The URL from where the OpenAPI doc can be downloaded. If the url ends with `.yaml`, output will YAML format.                        | No       | http://localhost:8080/v3/api-docs    |
 | `outputDir`          | The output directory for the generated OpenAPI file                                                                                 | No       | $buildDir - Your project's build dir |
-| `outputFileName`     | Specifies the output file name.                            | No       | openapi.json                         |
+| `outputFileName`     | Specifies the output file name.                                                                                                     | No       | openapi.json                         |
 | `waitTimeInSeconds`  | Time to wait in seconds for your Spring Boot application to start, before we make calls to `apiDocsUrl` to download the OpenAPI doc | No       | 30 seconds                           |
+| `trustStore`         | Path to a trust store that contains custom trusted certificates.                                                                    | No       | `<None>`                             |
+| `trustStorePassword` | Password to open Trust Store                                                                                                        | No       | `<None>`                             |
 | `groupedApiMappings` | A map of URLs (from where the OpenAPI docs can be downloaded) to output file names                                                  | No       | []                                   |
 | `customBootRun`      | Any bootRun property that you would normal need to start your spring boot application.                                              | No       | (N/A)                                |
 
@@ -132,6 +138,20 @@ openApi {
          systemProperties = System.properties
     }
 }
+```
+
+### Trust Store Configuration
+
+If you have restricted your application to HTTPS only and prefer not to include your certificate
+in Java's cacerts file, you can configure your own set of trusted certificates through plugin
+properties, ensuring SSL connections are established.
+
+#### Generating a Trust Store
+
+To create your own Trust Store, utilize the Java keytool command:
+
+```shell
+keytool -storepass changeit -noprompt -import -alias ca -file [CERT_PATH]/ca.crt -keystore [KEYSTORE_PATH]/truststore.p12 -deststoretype PKCS12
 ```
 
 ### Grouped API Mappings Notes
