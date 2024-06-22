@@ -34,7 +34,6 @@ import javax.net.ssl.KeyManager
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 
-
 private const val MAX_HTTP_STATUS_CODE = 299
 
 open class OpenApiGeneratorTask : DefaultTask() {
@@ -45,8 +44,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 	val outputFileName: Property<String> = project.objects.property(String::class.java)
 
 	@get:Input
-	val groupedApiMappings: MapProperty<String, String> =
-		project.objects.mapProperty(String::class.java, String::class.java)
+	val groupedApiMappings: MapProperty<String, String> = project.objects.mapProperty(String::class.java, String::class.java)
 
 	@get:OutputDirectory
 	val outputDir: DirectoryProperty = project.objects.directoryProperty()
