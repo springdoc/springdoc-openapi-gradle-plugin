@@ -121,7 +121,7 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
 		)
 
-		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("clean")).outcome)
 		assertOpenApiJsonFile(1, buildDir = specialOutputDir)
 	}
 
@@ -400,8 +400,7 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(1)
 
 		// Rerunning the build does not regenerate the OpenAPI file
-		// TODO escape failing test for now
-		// assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(runTheBuild()).outcome)
+		assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(runTheBuild()).outcome)
 		assertOpenApiJsonFile(1)
 	}
 
@@ -444,7 +443,7 @@ class OpenApiGradlePluginTest {
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
-			.withArguments("clean", "generateOpenApiDocs", *additionalArguments)
+			.withArguments(*additionalArguments, "generateOpenApiDocs")
 			.withPluginClasspath()
 			.build()
 
