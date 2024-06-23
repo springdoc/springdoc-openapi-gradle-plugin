@@ -18,7 +18,12 @@ open class OpenApiExtension @Inject constructor(
 	val outputFileName: Property<String> = objects.property(String::class.java)
 	val outputDir: DirectoryProperty = objects.directoryProperty()
 	val waitTimeInSeconds: Property<Int> = objects.property(Int::class.java)
+	val trustStore: Property<String> = objects.property(String::class.java)
+	val trustStorePassword: Property<CharArray> = objects.property(CharArray::class.java)
+
 	val groupedApiMappings: MapProperty<String, String> =
+		objects.mapProperty(String::class.java, String::class.java)
+	val requestHeaders: MapProperty<String, String> =
 		objects.mapProperty(String::class.java, String::class.java)
 	val customBootRun: CustomBootRunAction =
 		objects.newInstance(CustomBootRunAction::class.java)
