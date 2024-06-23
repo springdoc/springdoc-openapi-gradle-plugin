@@ -400,8 +400,7 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(1)
 
 		// Rerunning the build does not regenerate the OpenAPI file
-		// TODO escape failing test for now
-		// assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(runTheBuild()).outcome)
+		assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(runTheBuild()).outcome)
 		assertOpenApiJsonFile(1)
 	}
 
