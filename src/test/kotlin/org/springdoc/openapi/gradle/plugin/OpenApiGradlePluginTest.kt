@@ -121,7 +121,7 @@ class OpenApiGradlePluginTest {
         """.trimMargin()
 		)
 
-		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("clean")).outcome)
 		assertOpenApiJsonFile(1, buildDir = specialOutputDir)
 	}
 
