@@ -443,7 +443,7 @@ class OpenApiGradlePluginTest {
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
-			.withArguments("generateOpenApiDocs", *additionalArguments)
+			.withArguments(*additionalArguments, "generateOpenApiDocs")
 			.withPluginClasspath()
 			.build()
 
