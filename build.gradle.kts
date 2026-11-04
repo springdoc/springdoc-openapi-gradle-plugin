@@ -54,7 +54,7 @@ publishing {
 
 dependencies {
 	implementation(kotlin("reflect"))
-	implementation("com.google.code.gson:gson:2.8.9")
+	implementation("com.google.code.gson:gson:2.15.0")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
 	implementation("com.github.psxpaul:gradle-execfork-plugin:0.2.0")
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
