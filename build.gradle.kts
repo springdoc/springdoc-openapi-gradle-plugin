@@ -60,7 +60,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
 
 	testImplementation(gradleTestKit())
-	testImplementation(platform("org.junit:junit-bom:5.7.1"))
+	testImplementation(platform("org.junit:junit-bom:6.1.3"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.5")
 	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
