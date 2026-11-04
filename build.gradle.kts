@@ -63,7 +63,7 @@ dependencies {
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.5")
-	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.4")
 	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
 
 	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
