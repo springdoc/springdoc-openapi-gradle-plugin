@@ -441,7 +441,7 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
-	fun `retrying when the connection is reset`() {
+	fun `retrying when the connection is refused or reset`() {
 		buildFile.writeText(
 			"""$baseBuildGradle
             openApi {

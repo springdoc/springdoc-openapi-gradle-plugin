@@ -8,14 +8,15 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Resets the first connections after reading the request (like an application that is still starting), then serves
- * a minimal OpenAPI document.
+ * Behaves like an application that is still starting: refuses connections for a few seconds (the port is not open
+ * yet), then resets the first connections after reading the request, then serves a minimal OpenAPI document.
  */
 public class ResetConnectionsApplication {
 
 	private static final String API_DOCS = "{\"openapi\":\"3.0.1\",\"paths\":{\"/hello\":{}}}";
 
 	public static void main(String[] args) throws Exception {
+		Thread.sleep(3000);
 		int resets = 3;
 		try (ServerSocket server = new ServerSocket(8080)) {
 			while (true) {

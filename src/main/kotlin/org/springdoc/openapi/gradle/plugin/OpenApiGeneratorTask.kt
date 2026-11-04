@@ -7,7 +7,7 @@ import org.awaitility.Durations
 import org.awaitility.core.ConditionTimeoutException
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.ignoreException
+import org.awaitility.kotlin.ignoreExceptionsInstanceOf
 import org.awaitility.kotlin.until
 import org.awaitility.kotlin.withPollInterval
 import org.gradle.api.DefaultTask
@@ -95,7 +95,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		try {
 			val isYaml = url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
 			val sslContext = getCustomSslContext()
-			await ignoreException SocketException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
+			await ignoreExceptionsInstanceOf SocketException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
 				waitTimeInSeconds.get().toLong(),
 				SECONDS
 			) until {
