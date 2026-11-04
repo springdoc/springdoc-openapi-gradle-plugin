@@ -1,0 +1,100 @@
+# Builds and tests every push to master and every pull request.
+name: CI
+
+on:
+  push:
+    branches: [master]
+    paths-ignore: ['**.md', '**.adoc']
+  pull_request:
+    paths-ignore: ['**.md', '**.adoc']
+  workflow_dispatch:
+
+# Supersede in-flight runs for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# The plugin compiles with a Java 8 toolchain: use the JDK 8 installed by setup-java
+# instead of downloading one.
+env:
+  GRADLE_ARGS: --console=plain -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64 -Porg.gradle.java.installations.auto-download=false
+
+jobs:
+  build:
+    name: Build (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['11', '17']
+    steps:
+      - uses: actions/checkout@v4
+
+      # The last version listed is the default JDK that runs Gradle.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            ${{ matrix.java }}
+
+      # Caches Gradle and validates the wrapper.
+      - uses: gradle/actions/setup-gradle@v4
+
+      # build = tests + detekt.
+      - name: Build
+        run: ./gradlew $GRADLE_ARGS build
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-java-${{ matrix.java }}
+          path: build/reports/
+
+  # Checks that the plugin from this commit works with the demo project.
+  demo:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: springdoc/springdoc-openapi-gradle-plugin-demo
+          path: demo
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish the plugin to Maven Local
+        run: ./gradlew $GRADLE_ARGS publishToMavenLocal
+
+      # The demo resolves plugins from mavenLocal() first: align its plugin version with this build.
+      - name: Use the local plugin version in the demo
+        run: |
+          version=$(./gradlew -q properties --property version | sed -n 's/^version: //p')
+          sed -i -E "s/(id\(\"org.springdoc.openapi-gradle-plugin\"\) version )\"[^\"]+\"/\1\"$version\"/" demo/build.gradle
+          grep -n 'openapi-gradle-plugin' demo/build.gradle
+
+      - name: Generate the demo OpenAPI docs
+        working-directory: demo
+        run: |
+          ./gradlew --console=plain clean generateOpenApiDocs
+          test -s build/swagger.json
+          jq -e '.paths | length > 0' build/swagger.json
+
+      - name: Second run is up to date
+        working-directory: demo
+        run: ./gradlew --console=plain generateOpenApiDocs | tee run2.log && grep -q 'generateOpenApiDocs UP-TO-DATE' run2.log
