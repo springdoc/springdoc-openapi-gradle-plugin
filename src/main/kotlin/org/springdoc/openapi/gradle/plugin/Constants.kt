@@ -14,6 +14,5 @@ const val DEFAULT_OPEN_API_FILE_NAME = "openapi.json"
 const val DEFAULT_WAIT_TIME_IN_SECONDS = 30
 
 const val SPRING_BOOT_PLUGIN = "org.springframework.boot"
-const val EXEC_FORK_PLUGIN = "com.github.psxpaul.execfork"
 
 const val CLASS_PATH_PROPERTY_NAME = "java.class.path"

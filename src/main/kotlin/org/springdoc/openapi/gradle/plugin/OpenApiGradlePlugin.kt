@@ -1,13 +1,14 @@
 package org.springdoc.openapi.gradle.plugin
 
+import com.github.psxpaul.ExecForkPlugin
 import com.github.psxpaul.task.JavaExecFork
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.jvm.Jvm
-import org.springframework.boot.gradle.tasks.run.BootRun
 
 open class OpenApiGradlePlugin : Plugin<Project> {
 
@@ -15,7 +16,7 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		with(project) {
 			// Run time dependency on the following plugins
 			plugins.apply(SPRING_BOOT_PLUGIN)
-			plugins.apply(EXEC_FORK_PLUGIN)
+			plugins.apply(ExecForkPlugin::class.java)
 
 			extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
 			tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
@@ -86,7 +87,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		customBootRun: CustomBootRunAction,
 		fork: JavaExecFork
 	): Boolean {
-		val bootRun = bootRunTask.get() as BootRun
+		// BootRun is a JavaExec: using the Gradle type avoids a ClassCastException when the Spring Boot
+		// plugin classes are loaded by another classloader (e.g. this plugin applied from a script plugin)
+		val bootRun = bootRunTask.get() as JavaExec
 
 		val baseSystemProperties =
 			customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() }

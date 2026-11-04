@@ -476,6 +476,33 @@ class OpenApiGradlePluginTest {
 		assertTrue(example.containsKey("errorMessage"))
 	}
 
+	@Test
+	fun `applying the plugin from a script plugin`() {
+		// The script plugin loads this plugin (and its own Spring Boot plugin classes) in a separate classloader
+		val pluginClasspath = GradleRunner.create().withPluginClasspath().pluginClasspath
+		File(projectTestDir, "openapi.gradle").writeText(
+			"""
+			buildscript {
+				dependencies {
+					classpath files(${pluginClasspath.joinToString { "'${it.invariantSeparatorsPath}'" }})
+				}
+			}
+			apply plugin: org.springdoc.openapi.gradle.plugin.OpenApiGradlePlugin
+			""".trimIndent()
+		)
+		buildFile.writeText(
+			baseBuildGradle.replace("id 'org.springdoc.openapi-gradle-plugin'", "") + "\napply from: 'openapi.gradle'"
+		)
+
+		// Without withPluginClasspath(), which would make this plugin visible to every classloader
+		val result = GradleRunner.create()
+			.withProjectDir(projectTestDir)
+			.withArguments("generateOpenApiDocs")
+			.build()
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(result).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
