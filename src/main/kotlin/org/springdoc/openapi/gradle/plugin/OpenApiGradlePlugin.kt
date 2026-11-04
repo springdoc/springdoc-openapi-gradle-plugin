@@ -110,6 +110,11 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 				?: bootRun.jvmArgs
 			environment = customBootRun.environment.orNull?.takeIf { it.isNotEmpty() }
 				?: bootRun.environment
+
+			// Respect javaLauncher configured for bootRun, so Gradle JVM version
+			// (which may differ) is not used.
+			javaLauncher.set(bootRun.javaLauncher)
+
 			if (Jvm.current().toString().startsWith("1.8")) {
 				killDescendants = false
 			}
