@@ -21,8 +21,8 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.FileInputStream
-import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.SocketException
 import java.net.URL
 import java.security.KeyStore
 import java.security.SecureRandom
@@ -95,7 +95,7 @@ open class OpenApiGeneratorTask : DefaultTask() {
 		try {
 			val isYaml = url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
 			val sslContext = getCustomSslContext()
-			await ignoreException ConnectException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
+			await ignoreException SocketException::class withPollInterval Durations.ONE_SECOND atMost Duration.of(
 				waitTimeInSeconds.get().toLong(),
 				SECONDS
 			) until {

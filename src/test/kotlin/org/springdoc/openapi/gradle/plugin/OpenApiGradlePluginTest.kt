@@ -440,6 +440,22 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(2)
 	}
 
+	@Test
+	fun `retrying when the connection is reset`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
+            openApi {
+                customBootRun {
+                    mainClass = "com.example.demo.ResetConnectionsApplication"
+                }
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
