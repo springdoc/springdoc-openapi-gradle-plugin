@@ -456,6 +456,26 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(1)
 	}
 
+	@Test
+	fun `keeping null values in the api docs`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
+            bootRun {
+                args = ["--spring.profiles.active=null-values"]
+            }
+            openApi {
+                apiDocsUrl = "http://localhost:8080/null-values-api-docs"
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		val openApiJson = getOpenApiJsonAtLocation(File(projectBuildDir, DEFAULT_OPEN_API_FILE_NAME))
+		val example = openApiJson.obj(pathsField)!!.obj("/")!!.obj("get")!!.obj("responses")!!.obj("404")!!
+			.obj("content")!!.obj("*/*")!!.obj("example")!!
+		assertTrue(example.containsKey("errorMessage"))
+	}
+
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
