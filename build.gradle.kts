@@ -1,6 +1,6 @@
 plugins {
 	`java-gradle-plugin`
-	id("com.gradle.plugin-publish") version "1.2.0"
+	id("com.gradle.plugin-publish") version "2.2.1"
 	id("org.sonarqube") version "3.1.1"
 	kotlin("jvm") version "1.8.20"
 	`maven-publish`
