@@ -1,6 +1,8 @@
 package org.springdoc.openapi.gradle.plugin
 
 import com.github.psxpaul.ExecForkPlugin
+import com.github.psxpaul.task.AbstractExecFork
+import com.github.psxpaul.task.ExecJoin
 import com.github.psxpaul.task.JavaExecFork
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,6 +12,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 
 open class OpenApiGradlePlugin : Plugin<Project> {
 
@@ -84,6 +87,17 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
 		// The forked task need to be terminated as soon as my task is finished
 		forkedSpringBoot.get().stopAfter = openApiTask as TaskProvider<Task>
+
+		// The execfork tasks keep references to other tasks, which the configuration cache cannot store (#153):
+		// let Gradle run the build without it instead of failing (API available since Gradle 7.4)
+		if (GradleVersion.current() >= GradleVersion.version("7.4")) {
+			tasks.withType(AbstractExecFork::class.java).configureEach {
+				it.notCompatibleWithConfigurationCache(CONFIGURATION_CACHE_REASON)
+			}
+			tasks.withType(ExecJoin::class.java).configureEach {
+				it.notCompatibleWithConfigurationCache(CONFIGURATION_CACHE_REASON)
+			}
+		}
 	}
 
 	private fun Project.springBoot3CompatibilityCheck() {

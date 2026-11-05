@@ -504,6 +504,14 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `running with the configuration cache enabled`() {
+		buildFile.writeText(baseBuildGradle)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("--configuration-cache")).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
+	@Test
 	fun `applying the java plugin after this plugin`() {
 		buildFile.writeText(
 			baseBuildGradle

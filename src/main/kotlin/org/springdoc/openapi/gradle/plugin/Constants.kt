@@ -16,3 +16,6 @@ const val DEFAULT_WAIT_TIME_IN_SECONDS = 30
 const val SPRING_BOOT_PLUGIN = "org.springframework.boot"
 
 const val CLASS_PATH_PROPERTY_NAME = "java.class.path"
+
+const val CONFIGURATION_CACHE_REASON =
+	"The application is forked with the execfork plugin, whose tasks are not compatible with the configuration cache"
