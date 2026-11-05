@@ -504,6 +504,21 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `applying the java plugin after this plugin`() {
+		buildFile.writeText(
+			baseBuildGradle
+				.replaceFirst("id 'java'", "")
+				.replace(
+					"id 'org.springdoc.openapi-gradle-plugin'",
+					"id 'org.springdoc.openapi-gradle-plugin'\n            id 'java'"
+				)
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
+	@Test
 	fun `running the application in the project directory`() {
 		// Spring Boot reads ./config/application.properties from the working directory
 		File(projectTestDir, "config").mkdirs()

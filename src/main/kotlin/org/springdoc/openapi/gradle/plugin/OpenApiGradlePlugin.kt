@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.jvm.Jvm
@@ -22,7 +23,9 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
 			tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
 
-			generate(this)
+			// The Spring Boot plugin only creates bootRun once the java plugin is applied, which may happen after
+			// this plugin (for example with the Kotlin plugin listed after it)
+			plugins.withType(JavaPlugin::class.java) { generate(this) }
 		}
 	}
 
