@@ -57,7 +57,17 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			JavaExecFork::class.java
 		) { fork ->
 			fork.dependsOn(tasks.named(bootRunMainClassNameTask.name))
+			// The classpath is only copied to the fork when it runs: build it first. Use files() rather than
+			// bootRunTask.map(), which would make the fork depend on bootRun itself.
+			fork.dependsOn(files({ (bootRunTask.get() as JavaExec).classpath }), customBootRun.classpath)
 			fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
+			// The fork declares its working directory as an input directory: a temporary one keeps Gradle from
+			// treating the whole project as an input (#120). Only once the task is validated, run the application
+			// in the same directory as bootRun (#150).
+			fork.doFirst {
+				fork.workingDir = customBootRun.workingDir.asFile.orNull
+					?: (bootRunTask.get() as JavaExec).workingDir
+			}
 		}
 
 		val openApiTask =
@@ -101,8 +111,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			}
 
 			// use original bootRun parameter if the list-type customBootRun properties are empty
-			workingDir = customBootRun.workingDir.asFile.orNull
-				?: fork.temporaryDir
+			// replaced by the application working directory in doFirst
+			workingDir = fork.temporaryDir
 			args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
 				?: bootRun.args?.toMutableList() ?: mutableListOf()
 			classpath = customBootRun.classpath.takeIf { !it.isEmpty }

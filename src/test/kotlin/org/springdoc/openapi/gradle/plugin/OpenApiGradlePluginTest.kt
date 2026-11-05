@@ -503,6 +503,54 @@ class OpenApiGradlePluginTest {
 		assertOpenApiJsonFile(1)
 	}
 
+	@Test
+	fun `running the application in the project directory`() {
+		// Spring Boot reads ./config/application.properties from the working directory
+		File(projectTestDir, "config").mkdirs()
+		File(projectTestDir, "config/application.properties").writeText("some.second.property=someValue")
+		buildFile.writeText(baseBuildGradle)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(2)
+	}
+
+	@Test
+	fun `building the classpath of the forked application`() {
+		// The lib jar is only on the customBootRun classpath: nothing else builds it
+		File(projectTestDir, "settings.gradle").appendText("\ninclude 'lib'")
+		File(projectTestDir, "lib/src/main/resources").mkdirs()
+		File(projectTestDir, "lib/build.gradle").writeText("plugins { id 'java-library' }\nsourceCompatibility = '8'")
+		File(projectTestDir, "lib/src/main/resources/application-lib.properties")
+			.writeText("some.second.property=someValue")
+		buildFile.writeText(
+			"""$baseBuildGradle
+            openApi {
+                customBootRun {
+                    classpath.from(sourceSets.main.runtimeClasspath, { project(':lib').tasks.named('jar') })
+                    args = ["--spring.profiles.active=lib"]
+                }
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("clean")).outcome)
+		assertOpenApiJsonFile(2)
+	}
+
+	@Test
+	fun `generating the docs as part of the build`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
+            tasks.named("build") {
+                finalizedBy("generateOpenApiDocs")
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("clean", "build")).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
 	private fun runTheBuild(vararg additionalArguments: String = emptyArray()) =
 		GradleRunner.create()
 			.withProjectDir(projectTestDir)
