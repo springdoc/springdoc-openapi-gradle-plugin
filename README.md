@@ -276,6 +276,9 @@ differently when generating the docs, for example with another profile. Each pro
   }
   ```
 
+  In 1.9.0, also compile the test classes first: `tasks.named("forkedSpringBootRun") { dependsOn("testClasses") }`
+  (the next release does it for you).
+
 - 🏗️ **As part of the build**: `tasks.named("build") { finalizedBy("generateOpenApiDocs") }`. In 1.9.0, if Gradle
   reports that `forkedSpringBootRun` uses the output of another task without declaring a dependency, also add
   `tasks.named("forkedSpringBootRun") { dependsOn("assemble") }`
