@@ -81,6 +81,12 @@ jobs:
             repository: springdoc/springdoc-openapi-gradle-plugin-demo-3
             build-file: build.gradle.kts
             output: build/openapi.json
+          # The oldest supported Gradle version
+          - name: Spring Boot 2, Gradle 8.0
+            repository: springdoc/springdoc-openapi-gradle-plugin-demo
+            build-file: build.gradle
+            output: build/swagger.json
+            gradle-version: 8.0.2
     steps:
       - uses: actions/checkout@v7
 
@@ -107,6 +113,12 @@ jobs:
           version=$(./gradlew -q properties --property version | sed -n 's/^version: //p')
           sed -i -E "s/(id\(\"org.springdoc.openapi-gradle-plugin\"\) version )\"[^\"]+\"/\1\"$version\"/" demo/${{ matrix.demo.build-file }}
           grep -n 'openapi-gradle-plugin' demo/${{ matrix.demo.build-file }}
+
+      - name: Use Gradle ${{ matrix.demo.gradle-version }} in the demo
+        if: matrix.demo.gradle-version
+        run: |
+          sed -i -E "s#gradle-[0-9.]+-bin.zip#gradle-${{ matrix.demo.gradle-version }}-bin.zip#" demo/gradle/wrapper/gradle-wrapper.properties
+          grep -n distributionUrl demo/gradle/wrapper/gradle-wrapper.properties
 
       - name: Generate the demo OpenAPI docs
         working-directory: demo
