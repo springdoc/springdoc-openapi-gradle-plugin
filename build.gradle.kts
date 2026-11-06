@@ -5,7 +5,7 @@ plugins {
 	kotlin("jvm") version "1.8.20"
 	`maven-publish`
 	id("com.github.ben-manes.versions") version "0.38.0"
-	id("io.gitlab.arturbosch.detekt") version "1.23.1"
+	id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 group = "org.springdoc"
@@ -66,7 +66,7 @@ dependencies {
 	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
 
-	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
+	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 }
 
 gradlePlugin {
