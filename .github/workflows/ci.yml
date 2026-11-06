@@ -34,10 +34,10 @@ jobs:
       matrix:
         java: ['17']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The last version listed is the default JDK that runs Gradle.
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
@@ -45,7 +45,7 @@ jobs:
             ${{ matrix.java }}
 
       # Caches Gradle and validates the wrapper.
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       # build = tests + detekt.
       - name: Build
@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-java-${{ matrix.java }}
           path: build/reports/
@@ -78,21 +78,21 @@ jobs:
             build-file: build.gradle.kts
             output: build/openapi.json
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: ${{ matrix.demo.repository }}
           path: demo
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
             8
             17
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - name: Publish the plugin to Maven Local
         run: ./gradlew $GRADLE_ARGS publishToMavenLocal
