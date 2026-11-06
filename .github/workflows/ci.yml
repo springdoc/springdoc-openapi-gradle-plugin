@@ -24,25 +24,29 @@ env:
 
 jobs:
   build:
-    name: Build (Java ${{ matrix.java }})
-    runs-on: ubuntu-latest
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # JDK that runs Gradle: plugin-publish 2.x needs 17. The plugin itself is still compiled for, and tested
-      # on, the Java 8 toolchain.
+      # Windows too: the long-classpath pathing jar and stopping the application work differently there.
       matrix:
-        java: ['17']
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        # Git Bash on Windows, so that $GRADLE_ARGS and ./gradlew work the same everywhere
+        shell: bash
     steps:
       - uses: actions/checkout@v7
 
-      # The last version listed is the default JDK that runs Gradle.
+      # The last version listed is the default JDK that runs Gradle: plugin-publish 2.x needs 17. The plugin itself
+      # is still compiled for, and tested on, the Java 8 toolchain.
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
             8
-            ${{ matrix.java }}
+            17
 
       # Caches Gradle and validates the wrapper.
       - uses: gradle/actions/setup-gradle@v5
@@ -55,7 +59,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: test-reports-java-${{ matrix.java }}
+          name: test-reports-${{ matrix.os }}
           path: build/reports/
 
   # Checks that the plugin from this commit works with the public demo projects (demo-2 is private, so the

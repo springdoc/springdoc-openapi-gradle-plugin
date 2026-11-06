@@ -82,7 +82,7 @@ class OpenApiGradlePluginTest {
 		buildFile.writeText(
 			"""$baseBuildGradle
             openApi{
-                outputDir = file("${specialOutputDir.toURI().path}")
+                outputDir = file("${specialOutputDir.invariantSeparatorsPath}")
             }
         """.trimMargin()
 		)
@@ -119,7 +119,7 @@ class OpenApiGradlePluginTest {
             }
 
             openApi{
-                outputDir = file("${specialOutputDir.toURI().path}")
+                outputDir = file("${specialOutputDir.invariantSeparatorsPath}")
             }
         """.trimMargin()
 		)
@@ -236,7 +236,7 @@ class OpenApiGradlePluginTest {
 			"""$baseBuildGradle
 				
             openApi{
-				trustStore = "${trustStore.absolutePath}"
+				trustStore = "${trustStore.invariantSeparatorsPath}"
 				trustStorePassword = "changeit".toCharArray()
                 apiDocsUrl = "https://127.0.0.1:8081/v3/api-docs"
                 customBootRun {
