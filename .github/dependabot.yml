@@ -10,9 +10,6 @@ updates:
         update-types: [minor, patch]
     # The plugin is compiled with a Java 8 toolchain and Kotlin 1.8: ignore the versions that need a newer Java or Kotlin.
     ignore:
-      # Spring Boot 3+ Gradle plugins need Java 17. The plugin builds against 2.7 and works with Spring Boot 2, 3 and 4.
-      - dependency-name: 'org.springframework.boot:spring-boot-gradle-plugin'
-        update-types: ['version-update:semver-major']
       # Kotlin 2 needs a migration of the build (compilerOptions) and an apiVersion that the oldest supported Gradle
       # can load.
       - dependency-name: 'org.jetbrains.kotlin.jvm'

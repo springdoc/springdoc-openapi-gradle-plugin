@@ -129,7 +129,8 @@ The task is up to date, and does not start the application, when the classpath a
 (main class, arguments, JVM arguments, system properties, Java toolchain) and the `openApi` configuration did not
 change. It supports the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
 
-The plugin applies the Spring Boot plugin (`org.springframework.boot`) for you.
+The build must apply the Spring Boot plugin (`org.springframework.boot`) and the `java` plugin (or the Kotlin plugin),
+in any order: the application is started with the settings of their `bootRun` task.
 
 <a id="configuration"></a>
 
@@ -305,6 +306,8 @@ Version 2.0 starts and stops the application inside `generateOpenApiDocs`, inste
 - 🛑 The build fails as soon as the application exits, and before starting it if another process already listens on
   the port of `apiDocsUrl`.
 - 📝 `null` values of a JSON description are kept.
+- 🍃 Since 2.1, the plugin no longer applies the Spring Boot plugin itself: apply `org.springframework.boot` in your
+  build, as in [Getting started](#getting-started).
 
 ## 💬 Getting help
 

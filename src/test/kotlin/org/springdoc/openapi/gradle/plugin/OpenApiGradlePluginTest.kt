@@ -617,6 +617,40 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `applying the Spring Boot plugin after this plugin`() {
+		buildFile.writeText(
+			baseBuildGradle
+				.replace("id 'org.springframework.boot' version '2.7.6'", "")
+				.replace(
+					"id 'org.springdoc.openapi-gradle-plugin'",
+					"id 'org.springdoc.openapi-gradle-plugin'\n            id 'org.springframework.boot' version '2.7.6'"
+				)
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+	}
+
+	@Test
+	fun `failing without the Spring Boot plugin`() {
+		buildFile.writeText(
+			baseBuildGradle
+				.replace("id 'org.springframework.boot' version '2.7.6'", "")
+				.replace("id 'io.spring.dependency-management' version '1.0.15.RELEASE'", "")
+				.replace("implementation 'org.springframework.boot:spring-boot-starter-web'", "")
+				.replace("implementation 'org.springdoc:springdoc-openapi-webmvc-core:1.6.13'", "")
+		)
+
+		val result = runTheFailingBuild()
+		assertTrue(
+			result.output.contains(
+				"The springdoc-openapi Gradle plugin needs the Spring Boot plugin: " +
+					"add id(\"org.springframework.boot\") to the plugins block of root project 'demo'."
+			)
+		)
+	}
+
+	@Test
 	fun `running the application in the project directory`() {
 		// Spring Boot reads ./config/application.properties from the working directory
 		File(projectTestDir, "config").mkdirs()

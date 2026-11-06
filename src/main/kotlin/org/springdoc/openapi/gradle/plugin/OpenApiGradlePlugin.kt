@@ -1,5 +1,6 @@
 package org.springdoc.openapi.gradle.plugin
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
@@ -11,15 +12,24 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 
 	override fun apply(project: Project) {
 		with(project) {
-			// Run time dependency on the following plugins
-			plugins.apply(SPRING_BOOT_PLUGIN)
-
 			extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
 			tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
 
-			// The Spring Boot plugin only creates bootRun once the java plugin is applied, which may happen after
-			// this plugin (for example with the Kotlin plugin listed after it)
-			plugins.withType(JavaPlugin::class.java) { generate(this) }
+			// The application is started with the settings of bootRun, which the Spring Boot plugin only creates once
+			// the java plugin is applied. The build applies both, possibly after this plugin (#121).
+			plugins.withId(SPRING_BOOT_PLUGIN) {
+				plugins.withType(JavaPlugin::class.java) { generate(this) }
+			}
+			if (state.executed) checkSpringBootPlugin() else afterEvaluate { checkSpringBootPlugin() }
+		}
+	}
+
+	private fun Project.checkSpringBootPlugin() {
+		if (!plugins.hasPlugin(SPRING_BOOT_PLUGIN)) {
+			throw GradleException(
+				"The springdoc-openapi Gradle plugin needs the Spring Boot plugin: add id(\"$SPRING_BOOT_PLUGIN\") " +
+					"to the plugins block of $displayName."
+			)
 		}
 	}
 
