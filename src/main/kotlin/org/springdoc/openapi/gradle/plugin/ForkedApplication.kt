@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit
 import java.util.jar.Attributes
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 private const val STOP_TIMEOUT_IN_SECONDS = 10L
 
@@ -52,15 +54,31 @@ class ForkedApplication(
 	}
 
 	/**
-	 * Stops the application gracefully (so that its shutdown hooks run), or forcibly if it does not stop in time.
+	 * Stops the application gracefully (so that its shutdown hooks run), or forcibly if it does not stop in time,
+	 * then the processes it started and left running.
 	 */
 	fun stop() {
 		val started = process ?: return
+		// Once the application is stopped, its children are no longer its descendants: list them first
+		val descendants = descendantsOf(started)
 		started.destroy()
 		if (!started.waitFor(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
 			started.destroyForcibly()
 			started.waitFor(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
 		}
+		descendants.forEach(::destroy)
+	}
+
+	// ProcessHandle needs Java 9, and the plugin runs on Java 8: use it through reflection, when it is available
+
+	private fun descendantsOf(process: Process): List<Any> =
+		runCatching {
+			val descendants = Process::class.java.getMethod("descendants").invoke(process) as Stream<*>
+			descendants.collect(Collectors.toList()).filterNotNull()
+		}.getOrDefault(emptyList())
+
+	private fun destroy(processHandle: Any) {
+		runCatching { Class.forName("java.lang.ProcessHandle").getMethod("destroy").invoke(processHandle) }
 	}
 
 	private fun classpathArgument(classpath: List<File>): String {
