@@ -61,6 +61,7 @@ dependencies {
 	testImplementation(gradleTestKit())
 	testImplementation(platform("org.junit:junit-bom:5.14.4"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("com.beust:klaxon:5.5")
 	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.4")
 	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.4")
