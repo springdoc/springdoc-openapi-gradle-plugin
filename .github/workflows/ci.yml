@@ -29,8 +29,10 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      # JDK that runs Gradle: plugin-publish 2.x needs 17. The plugin itself is still compiled for, and tested
+      # on, the Java 8 toolchain.
       matrix:
-        java: ['11', '17']
+        java: ['17']
     steps:
       - uses: actions/checkout@v4
 
