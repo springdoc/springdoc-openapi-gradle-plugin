@@ -58,17 +58,31 @@ jobs:
           name: test-reports-java-${{ matrix.java }}
           path: build/reports/
 
-  # Checks that the plugin from this commit works with the demo project.
+  # Checks that the plugin from this commit works with the public demo projects (demo-2 is private, so the
+  # workflow token cannot check it out).
   demo:
+    name: Demo (${{ matrix.demo.name }})
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        demo:
+          - name: Spring Boot 2
+            repository: springdoc/springdoc-openapi-gradle-plugin-demo
+            build-file: build.gradle
+            output: build/swagger.json
+          - name: Spring Boot 4
+            repository: springdoc/springdoc-openapi-gradle-plugin-demo-3
+            build-file: build.gradle.kts
+            output: build/openapi.json
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/checkout@v4
         with:
-          repository: springdoc/springdoc-openapi-gradle-plugin-demo
+          repository: ${{ matrix.demo.repository }}
           path: demo
 
       - uses: actions/setup-java@v4
@@ -87,15 +101,15 @@ jobs:
       - name: Use the local plugin version in the demo
         run: |
           version=$(./gradlew -q properties --property version | sed -n 's/^version: //p')
-          sed -i -E "s/(id\(\"org.springdoc.openapi-gradle-plugin\"\) version )\"[^\"]+\"/\1\"$version\"/" demo/build.gradle
-          grep -n 'openapi-gradle-plugin' demo/build.gradle
+          sed -i -E "s/(id\(\"org.springdoc.openapi-gradle-plugin\"\) version )\"[^\"]+\"/\1\"$version\"/" demo/${{ matrix.demo.build-file }}
+          grep -n 'openapi-gradle-plugin' demo/${{ matrix.demo.build-file }}
 
       - name: Generate the demo OpenAPI docs
         working-directory: demo
         run: |
           ./gradlew --console=plain clean generateOpenApiDocs
-          test -s build/swagger.json
-          jq -e '.paths | length > 0' build/swagger.json
+          test -s ${{ matrix.demo.output }}
+          jq -e '.paths | length > 0' ${{ matrix.demo.output }}
 
       - name: Second run is up to date
         working-directory: demo
