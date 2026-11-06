@@ -12,16 +12,24 @@ import org.awaitility.kotlin.until
 import org.awaitility.kotlin.withPollInterval
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.JavaLauncher
 import java.io.FileInputStream
 import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.SocketException
 import java.net.URL
 import java.security.KeyStore
@@ -35,6 +43,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 
 private const val MAX_HTTP_STATUS_CODE = 299
+private const val PORT_CHECK_TIMEOUT_IN_MILLIS = 1000
 
 open class OpenApiGeneratorTask : DefaultTask() {
 	@get:Input
@@ -65,6 +74,35 @@ open class OpenApiGeneratorTask : DefaultTask() {
 	@get:Input
 	val trustStorePassword: Property<CharArray> = project.objects.property(CharArray::class.java)
 
+	// The application started while the docs are downloaded. By default, these come from customBootRun and bootRun.
+
+	@get:Classpath
+	val classpath: ConfigurableFileCollection = project.objects.fileCollection()
+
+	@get:Input
+	val mainClass: Property<String> = project.objects.property(String::class.java)
+
+	@get:Input
+	val args: ListProperty<String> = project.objects.listProperty(String::class.java)
+
+	@get:Input
+	val jvmArgs: ListProperty<String> = project.objects.listProperty(String::class.java)
+
+	@get:Input
+	val systemProperties: MapProperty<String, String> =
+		project.objects.mapProperty(String::class.java, String::class.java)
+
+	@get:Internal
+	val environment: MapProperty<String, String> =
+		project.objects.mapProperty(String::class.java, String::class.java)
+
+	@get:Internal
+	val workingDir: DirectoryProperty = project.objects.directoryProperty()
+
+	@get:Nested
+	@get:Optional
+	val javaLauncher: Property<JavaLauncher> = project.objects.property(JavaLauncher::class.java)
+
 	init {
 		description = OPEN_API_TASK_DESCRIPTION
 		group = GROUP_NAME
@@ -84,14 +122,52 @@ open class OpenApiGeneratorTask : DefaultTask() {
 
 	@TaskAction
 	fun execute() {
-		if (groupedApiMappings.isPresent && groupedApiMappings.get().isNotEmpty()) {
-			groupedApiMappings.get().forEach(this::generateApiDocs)
+		val apiDocs = if (groupedApiMappings.isPresent && groupedApiMappings.get().isNotEmpty()) {
+			groupedApiMappings.get()
 		} else {
-			generateApiDocs(apiDocsUrl.get(), outputFileName.get())
+			mapOf(apiDocsUrl.get() to outputFileName.get())
+		}
+		checkNothingListens(apiDocs.keys)
+
+		val application = ForkedApplication(
+			javaExecutable(),
+			workingDir.get().asFile,
+			environment.get(),
+			temporaryDir
+		) { logger.lifecycle(it) }
+		try {
+			val systemPropertyArgs = systemProperties.get().map { "-D${it.key}=${it.value}" }
+			application.start(classpath.files.toList(), mainClass.get(), jvmArgs.get() + systemPropertyArgs, args.get())
+			apiDocs.forEach { (url, fileName) -> generateApiDocs(url, fileName, application) }
+		} finally {
+			application.stop()
 		}
 	}
 
-	private fun generateApiDocs(url: String, fileName: String) {
+	private fun javaExecutable(): String =
+		javaLauncher.orNull?.executablePath?.asFile?.absolutePath ?: Jvm.current().javaExecutable.absolutePath
+
+	/**
+	 * An application left running, for example by an interrupted build, would answer instead of the started one.
+	 */
+	private fun checkNothingListens(urls: Collection<String>) {
+		urls.map { URL(it) }
+			.map { it.host to if (it.port == -1) it.defaultPort else it.port }
+			.distinct()
+			.filter { (host, port) -> isListening(host, port) }
+			.forEach { (host, port) ->
+				throw GradleException(
+					"Another process is already listening on $host:$port. Stop it before generating the OpenAPI docs, " +
+						"otherwise it would answer instead of the application."
+				)
+			}
+	}
+
+	private fun isListening(host: String, port: Int): Boolean =
+		runCatching { Socket().use { it.connect(InetSocketAddress(host, port), PORT_CHECK_TIMEOUT_IN_MILLIS) } }
+			.isSuccess
+
+	private fun generateApiDocs(url: String, fileName: String, application: ForkedApplication) {
 		try {
 			val isYaml = url.lowercase(Locale.getDefault()).matches(Regex(".+[./]yaml(/.+)*"))
 			val sslContext = getCustomSslContext()
@@ -99,6 +175,12 @@ open class OpenApiGeneratorTask : DefaultTask() {
 				waitTimeInSeconds.get().toLong(),
 				SECONDS
 			) until {
+				if (!application.isAlive) {
+					throw GradleException(
+						"The application exited with code ${application.exitValue} before serving $url: " +
+							"see its output above."
+					)
+				}
 				HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
 				val connection: HttpURLConnection =
 					URL(url).openConnection() as HttpURLConnection

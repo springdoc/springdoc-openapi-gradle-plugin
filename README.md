@@ -26,6 +26,7 @@
   <a href="#getting-started">🚀 Getting started</a> ·
   <a href="#configuration">⚙️ Configuration</a> ·
   <a href="#recipes">💡 Recipes</a> ·
+  <a href="#migrating">⬆️ Migrating from 1.x</a> ·
   <a href="https://github.com/springdoc/springdoc-openapi">🍃 springdoc-openapi</a>
 </p>
 
@@ -54,7 +55,8 @@ so you can commit it, diff it, publish it, or feed it to code generators. ✨
 It starts your Spring Boot application in the background with the same settings as `bootRun`, downloads the
 description that [springdoc-openapi](https://github.com/springdoc/springdoc-openapi) serves at `/v3/api-docs`, and
 stops the application again. Because the description comes from the running application, it is exactly what
-springdoc-openapi serves at runtime.
+springdoc-openapi serves at runtime. When nothing changed since the last run, the task is up to date and the
+application is not started at all.
 
 <a id="getting-started"></a>
 
@@ -71,7 +73,7 @@ Add the plugin next to the Spring Boot plugin, in your application's build file:
 plugins {
     java
     id("org.springframework.boot") version "3.5.16"
-    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
+    id("org.springdoc.openapi-gradle-plugin") version "2.0.0"
 }
 ```
 
@@ -82,7 +84,7 @@ plugins {
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.16'
-    id 'org.springdoc.openapi-gradle-plugin' version '1.9.0'
+    id 'org.springdoc.openapi-gradle-plugin' version '2.0.0'
 }
 ```
 
@@ -118,12 +120,13 @@ The plugin runs on Java 8 and later, with Gradle 7 and later, in builds written 
 
 | Task | Description |
 |---|---|
-| `generateOpenApiDocs` | Downloads the OpenAPI description from the running application and writes it to a file. Run this one. |
-| `forkedSpringBootRun` | Starts the application in the background before `generateOpenApiDocs`, with the settings of `bootRun` |
-| `forkedSpringBootStop` | Stops the application once `generateOpenApiDocs` is done |
+| `generateOpenApiDocs` | Starts the application, downloads its OpenAPI description, writes it to a file and stops the application |
 
-The plugin applies the Spring Boot plugin (`org.springframework.boot`) and the
-[execfork plugin](https://github.com/psxpaul/gradle-execfork-plugin) (`com.github.psxpaul.execfork`) for you.
+The task is up to date, and does not start the application, when the classpath and the settings of the application
+(main class, arguments, JVM arguments, system properties, Java toolchain) and the `openApi` configuration did not
+change. It supports the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
+The plugin applies the Spring Boot plugin (`org.springframework.boot`) for you.
 
 <a id="configuration"></a>
 
@@ -189,6 +192,7 @@ openApi {
 
 > [!NOTE]
 > A JSON description is pretty-printed before it is written. A YAML description is written exactly as served.
+> The output of the application is shown in the build output.
 
 <a id="custom-boot-run"></a>
 
@@ -208,21 +212,8 @@ differently when generating the docs, for example with another profile. Each pro
 | `classpath` | Classpath |
 | `workingDir` | Working directory |
 
-> [!IMPORTANT]
-> In 1.9.0, the application runs in `build/tmp/forkedSpringBootRun`, so files relative to your project, such as
-> `compose.yaml` or a `config/` directory, are not found. Set the working directory to your project
-> ([#150](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/150)):
->
-> ```kotlin
-> openApi {
->     customBootRun {
->         workingDir.set(projectDir)
->     }
-> }
-> ```
->
-> The next release runs the application in the working directory of `bootRun` again, and with the Java toolchain of
-> `bootRun` ([#163](https://github.com/springdoc/springdoc-openapi-gradle-plugin/pull/163)).
+Like with `bootRun`, the application runs in the project directory (so `compose.yaml` or a `config/` directory are
+found) and with the Java toolchain of `bootRun`.
 
 <a id="recipes"></a>
 
@@ -276,29 +267,41 @@ differently when generating the docs, for example with another profile. Each pro
   }
   ```
 
-  In 1.9.0, also compile the test classes first: `tasks.named("forkedSpringBootRun") { dependsOn("testClasses") }`
-  (the next release does it for you).
-
-- 🏗️ **As part of the build**: `tasks.named("build") { finalizedBy("generateOpenApiDocs") }`. In 1.9.0, if Gradle
-  reports that `forkedSpringBootRun` uses the output of another task without declaring a dependency, also add
-  `tasks.named("forkedSpringBootRun") { dependsOn("assemble") }`
-  ([#164](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/164), fixed in the next release).
-
-- ⚡ **Configuration cache**: the execfork tasks do not support the
-  [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html). In 1.9.0, mark them so
-  that Gradle runs those builds without it instead of failing
-  ([#153](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/153)); the next release does it for you:
-
-  ```kotlin
-  listOf("generateOpenApiDocs", "forkedSpringBootRun", "forkedSpringBootStop").forEach {
-      tasks.named(it) { notCompatibleWithConfigurationCache("springdoc-openapi-gradle-plugin uses execfork") }
-  }
-  ```
+- 🏗️ **As part of the build**: `tasks.named("build") { finalizedBy("generateOpenApiDocs") }`.
 
 > [!TIP]
-> If `generateOpenApiDocs` fails with `Unable to connect to … waited for 30 seconds`, the application did not start
-> or does not serve `apiDocsUrl`. Run `./gradlew bootRun` with the same settings to see why, or increase
-> `waitTimeInSeconds` if it is just slow to start.
+> If the build fails with `The application exited with code …`, the application could not start: its output above
+> tells why. With `Unable to connect to … waited for 30 seconds`, the application is still starting or does not serve
+> `apiDocsUrl`: check the URL, or increase `waitTimeInSeconds`. With `Another process is already listening on …`,
+> stop the other process, for example an application left running by another build.
+
+<a id="migrating"></a>
+
+## ⬆️ Migrating from 1.x
+
+Version 2.0 starts and stops the application inside `generateOpenApiDocs`, instead of with separate tasks of the
+[execfork plugin](https://github.com/psxpaul/gradle-execfork-plugin):
+
+- 🗑️ The `forkedSpringBootRun` and `forkedSpringBootStop` tasks are gone, and the execfork plugin is no longer
+  applied. Remove the configuration of these tasks from your build. If you used them to add a dependency, add it to
+  `generateOpenApiDocs`, although this is rarely needed now: the task depends on the tasks that build the classpath
+  of the application.
+- 🧹 These 1.x workarounds are no longer needed, and can be removed:
+  - `customBootRun { workingDir.set(projectDir) }`: the application runs in the project directory again
+    ([#150](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/150));
+  - `dependsOn("assemble")` or `dependsOn("testClasses")` on `forkedSpringBootRun`
+    ([#164](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/164));
+  - `notCompatibleWithConfigurationCache(...)` on the plugin tasks: the configuration cache is supported
+    ([#153](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/153));
+  - applying the `java` or `kotlin` plugin before this one
+    ([#121](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/121)), or applying
+    `com.github.psxpaul.execfork` yourself for a script plugin
+    ([#169](https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/169)).
+- 🔄 The settings of the application are now inputs of `generateOpenApiDocs`: changing its arguments, for example
+  its profile, regenerates the description. The application is not started when the task is up to date.
+- 🛑 The build fails as soon as the application exits, and before starting it if another process already listens on
+  the port of `apiDocsUrl`.
+- 📝 `null` values of a JSON description are kept.
 
 ## 💬 Getting help
 

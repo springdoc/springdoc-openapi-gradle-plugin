@@ -13,6 +13,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileReader
+import java.net.ServerSocket
 import java.nio.file.Files
 
 class OpenApiGradlePluginTest {
@@ -54,6 +56,7 @@ class OpenApiGradlePluginTest {
 
 	companion object {
 		val logger: Logger = LoggerFactory.getLogger(OpenApiGradlePluginTest::class.java)
+		const val APPLICATION_STARTED_MESSAGE = "Hello World from Application Runner"
 	}
 
 	@BeforeEach
@@ -507,8 +510,95 @@ class OpenApiGradlePluginTest {
 	fun `running with the configuration cache enabled`() {
 		buildFile.writeText(baseBuildGradle)
 
+		// Any configuration cache problem fails the build
 		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild("--configuration-cache")).outcome)
 		assertOpenApiJsonFile(1)
+
+		val rerun = runTheBuild("--configuration-cache")
+		assertTrue(rerun.output.contains("Reusing configuration cache."))
+		assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(rerun).outcome)
+	}
+
+	@Test
+	fun `not starting the application when the docs are up to date`() {
+		buildFile.writeText(baseBuildGradle)
+
+		val firstRun = runTheBuild()
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(firstRun).outcome)
+		assertTrue(firstRun.output.contains(APPLICATION_STARTED_MESSAGE))
+
+		val rerun = runTheBuild()
+		assertEquals(TaskOutcome.UP_TO_DATE, openApiDocsTask(rerun).outcome)
+		assertFalse(rerun.output.contains(APPLICATION_STARTED_MESSAGE))
+		// No task starts (or stops) an application
+		assertEquals(emptyList<String>(), rerun.tasks.filter { it.outcome == TaskOutcome.SUCCESS }.map { it.path })
+		// The application is started by generateOpenApiDocs itself, never with bootRun
+		assertNull(firstRun.task(":bootRun"))
+		assertNull(rerun.task(":bootRun"))
+	}
+
+	@Test
+	fun `changing the application arguments regenerates the OpenAPI`() {
+		buildFile.writeText(baseBuildGradle)
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+
+		buildFile.writeText(
+			"""$baseBuildGradle
+            bootRun {
+                args = ["--spring.profiles.active=multiple-endpoints", "--some.second.property=someValue"]
+            }
+        """.trimMargin()
+		)
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(3)
+	}
+
+	@Test
+	fun `failing fast when the application exits`() {
+		buildFile.writeText(
+			"""$baseBuildGradle
+            openApi {
+                waitTimeInSeconds = 300
+                customBootRun {
+                    mainClass = "com.example.demo.Missing"
+                }
+            }
+        """.trimMargin()
+		)
+
+		val result = runTheFailingBuild()
+		assertEquals(TaskOutcome.FAILED, openApiDocsTask(result).outcome)
+		assertTrue(result.output.contains("The application exited with code"))
+	}
+
+	@Test
+	fun `failing when another process listens on the port`() {
+		buildFile.writeText(baseBuildGradle)
+
+		ServerSocket(8080).use {
+			val result = runTheFailingBuild()
+			assertEquals(TaskOutcome.FAILED, openApiDocsTask(result).outcome)
+			assertTrue(result.output.contains("Another process is already listening on localhost:8080"))
+		}
+	}
+
+	@Test
+	fun `starting the application with a long classpath`() {
+		// Too long for a Windows command line: the classpath goes through a pathing jar
+		buildFile.writeText(
+			"""$baseBuildGradle
+            openApi {
+                customBootRun {
+                    classpath.from(sourceSets.main.runtimeClasspath, (1..1000).collect { "missing/directory-${'$'}it" })
+                }
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+		assertTrue(File(projectBuildDir, "tmp/generateOpenApiDocs/classpath.jar").exists())
 	}
 
 	@Test
@@ -580,6 +670,13 @@ class OpenApiGradlePluginTest {
 			.withArguments(*additionalArguments, "generateOpenApiDocs")
 			.withPluginClasspath()
 			.build()
+
+	private fun runTheFailingBuild() =
+		GradleRunner.create()
+			.withProjectDir(projectTestDir)
+			.withArguments("generateOpenApiDocs")
+			.withPluginClasspath()
+			.buildAndFail()
 
 	private fun assertOpenApiJsonFile(
 		expectedPathCount: Int,

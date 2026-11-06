@@ -1,18 +1,11 @@
 package org.springdoc.openapi.gradle.plugin
 
-import com.github.psxpaul.ExecForkPlugin
-import com.github.psxpaul.task.AbstractExecFork
-import com.github.psxpaul.task.ExecJoin
-import com.github.psxpaul.task.JavaExecFork
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.jvm.Jvm
-import org.gradle.util.GradleVersion
 
 open class OpenApiGradlePlugin : Plugin<Project> {
 
@@ -20,10 +13,8 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		with(project) {
 			// Run time dependency on the following plugins
 			plugins.apply(SPRING_BOOT_PLUGIN)
-			plugins.apply(ExecForkPlugin::class.java)
 
 			extensions.create(EXTENSION_NAME, OpenApiExtension::class.java)
-			tasks.register(FORKED_SPRING_BOOT_RUN_TASK_NAME, JavaExecFork::class.java)
 			tasks.register(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java)
 
 			// The Spring Boot plugin only creates bootRun once the java plugin is applied, which may happen after
@@ -35,8 +26,10 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 	private fun generate(project: Project) = project.run {
 		springBoot3CompatibilityCheck()
 
-		// The task, used to run the Spring Boot application (`bootRun`)
-		val bootRunTask = tasks.named(SPRING_BOOT_RUN_TASK_NAME)
+		// The task, used to run the Spring Boot application (`bootRun`). BootRun is a JavaExec: using the Gradle type
+		// avoids a ClassCastException when the Spring Boot plugin classes are loaded by another classloader (e.g.
+		// this plugin applied from a script plugin).
+		val bootRun = tasks.named(SPRING_BOOT_RUN_TASK_NAME, JavaExec::class.java)
 		// The task, used to resolve the application's main class (`bootRunMainClassName`)
 		val bootRunMainClassNameTask =
 			try {
@@ -56,48 +49,40 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 			}
 
 		val extension = extensions.findByName(EXTENSION_NAME) as OpenApiExtension
-		val customBootRun = extension.customBootRun
-		// Create a forked version spring boot run task
-		val forkedSpringBoot = tasks.named(
-			FORKED_SPRING_BOOT_RUN_TASK_NAME,
-			JavaExecFork::class.java
-		) { fork ->
-			fork.dependsOn(tasks.named(bootRunMainClassNameTask.name))
-			// The classpath is only copied to the fork when it runs: build it first. Use files() rather than
-			// bootRunTask.map(), which would make the fork depend on bootRun itself.
-			fork.dependsOn(files({ (bootRunTask.get() as JavaExec).classpath }), customBootRun.classpath)
-			fork.onlyIf { needToFork(bootRunTask, customBootRun, fork) }
-			// The fork declares its working directory as an input directory: a temporary one keeps Gradle from
-			// treating the whole project as an input (#120). Only once the task is validated, run the application
-			// in the same directory as bootRun (#150).
-			fork.doFirst {
-				fork.workingDir = customBootRun.workingDir.asFile.orNull
-					?: (bootRunTask.get() as JavaExec).workingDir
-			}
+		tasks.named(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
+			it.dependsOn(tasks.named(bootRunMainClassNameTask.name))
+			configureApplication(it, extension.customBootRun, bootRun)
 		}
+	}
 
-		val openApiTask =
-			tasks.named(OPEN_API_TASK_NAME, OpenApiGeneratorTask::class.java) {
-				// This is my task. Before I can run it, I have to run the dependent tasks
-				it.dependsOn(forkedSpringBoot)
-
-				// Ensure the task inputs match those of the original application
-				it.inputs.files(bootRunTask.get().inputs.files)
-			}
-
-		// The forked task need to be terminated as soon as my task is finished
-		forkedSpringBoot.get().stopAfter = openApiTask as TaskProvider<Task>
-
-		// The execfork tasks keep references to other tasks, which the configuration cache cannot store (#153):
-		// let Gradle run the build without it instead of failing (API available since Gradle 7.4)
-		if (GradleVersion.current() >= GradleVersion.version("7.4")) {
-			tasks.withType(AbstractExecFork::class.java).configureEach {
-				it.notCompatibleWithConfigurationCache(CONFIGURATION_CACHE_REASON)
-			}
-			tasks.withType(ExecJoin::class.java).configureEach {
-				it.notCompatibleWithConfigurationCache(CONFIGURATION_CACHE_REASON)
-			}
-		}
+	/**
+	 * Starts the application with the customBootRun settings, or else with those of bootRun. The values are read
+	 * through provider { } and files { }: bootRun.map { } would make the task depend on bootRun itself.
+	 */
+	private fun Project.configureApplication(
+		task: OpenApiGeneratorTask,
+		customBootRun: CustomBootRunAction,
+		bootRun: TaskProvider<JavaExec>
+	) {
+		task.classpath.from(files({ customBootRun.classpath.takeIf { !it.isEmpty } ?: bootRun.get().classpath }))
+		task.mainClass.convention(customBootRun.mainClass.orElse(bootRun.flatMap { it.mainClass }))
+		task.args.convention(provider {
+			customBootRun.args.orNull?.takeIf { it.isNotEmpty() } ?: bootRun.get().args.orEmpty()
+		})
+		task.jvmArgs.convention(provider {
+			customBootRun.jvmArgs.orNull?.takeIf { it.isNotEmpty() } ?: bootRun.get().jvmArgs.orEmpty()
+		})
+		task.systemProperties.convention(provider {
+			(customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() } ?: bootRun.get().systemProperties)
+				.filterKeys { !it.startsWith(CLASS_PATH_PROPERTY_NAME) }
+				.mapValues { it.value.toString() }
+		})
+		task.environment.convention(provider {
+			(customBootRun.environment.orNull?.takeIf { it.isNotEmpty() } ?: bootRun.get().environment)
+				.mapValues { it.value.toString() }
+		})
+		task.workingDir.convention(customBootRun.workingDir.orElse(layout.dir(provider { bootRun.get().workingDir })))
+		task.javaLauncher.convention(provider { bootRun.get().javaLauncher.orNull })
 	}
 
 	private fun Project.springBoot3CompatibilityCheck() {
@@ -107,48 +92,5 @@ open class OpenApiGradlePlugin : Plugin<Project> {
 		if (!tasksNames.contains(boot2TaskName) && tasksNames.contains(boot3TaskName)) {
 		    tasks.register(boot2TaskName) { it.dependsOn(tasks.named(boot3TaskName)) }
 		}
-	}
-
-	private fun needToFork(
-		bootRunTask: TaskProvider<Task>,
-		customBootRun: CustomBootRunAction,
-		fork: JavaExecFork
-	): Boolean {
-		// BootRun is a JavaExec: using the Gradle type avoids a ClassCastException when the Spring Boot
-		// plugin classes are loaded by another classloader (e.g. this plugin applied from a script plugin)
-		val bootRun = bootRunTask.get() as JavaExec
-
-		val baseSystemProperties =
-			customBootRun.systemProperties.orNull?.takeIf { it.isNotEmpty() }
-				?: bootRun.systemProperties
-		with(fork) {
-			// copy all system properties, excluding those starting with `java.class.path`
-			systemProperties = baseSystemProperties.filter {
-				!it.key.startsWith(CLASS_PATH_PROPERTY_NAME)
-			}
-
-			// use original bootRun parameter if the list-type customBootRun properties are empty
-			// replaced by the application working directory in doFirst
-			workingDir = fork.temporaryDir
-			args = customBootRun.args.orNull?.takeIf { it.isNotEmpty() }?.toMutableList()
-				?: bootRun.args?.toMutableList() ?: mutableListOf()
-			classpath = customBootRun.classpath.takeIf { !it.isEmpty }
-				?: bootRun.classpath
-			main = customBootRun.mainClass.orNull
-				?: bootRun.mainClass.get()
-			jvmArgs = customBootRun.jvmArgs.orNull?.takeIf { it.isNotEmpty() }
-				?: bootRun.jvmArgs
-			environment = customBootRun.environment.orNull?.takeIf { it.isNotEmpty() }
-				?: bootRun.environment
-
-			// Respect javaLauncher configured for bootRun, so Gradle JVM version
-			// (which may differ) is not used.
-			javaLauncher.set(bootRun.javaLauncher)
-
-			if (Jvm.current().toString().startsWith("1.8")) {
-				killDescendants = false
-			}
-		}
-		return true
 	}
 }
