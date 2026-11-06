@@ -55,7 +55,7 @@ publishing {
 dependencies {
 	implementation(kotlin("reflect"))
 	implementation("com.google.code.gson:gson:2.15.0")
-	implementation("org.awaitility:awaitility-kotlin:4.0.3")
+	implementation("org.awaitility:awaitility-kotlin:4.3.0")
 	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
 
 	testImplementation(gradleTestKit())
