@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Issue and pull request numbers refer to the [GitHub repository](https://github.com/springdoc/springdoc-openapi-gradle-plugin).
 
-## [Unreleased] (2.1.0)
+## [Unreleased]
+
+## [2.1.0] - 2026-11-06
 
 ### Changed
 
@@ -15,6 +17,7 @@ Issue and pull request numbers refer to the [GitHub repository](https://github.c
   plugins are applied, in any order, and the build fails with a clear message when Spring Boot is not applied.
 - Upgrade `awaitility-kotlin` to 4.2.2.
 - Gradle 8.0 and 8.1 are supported, and tested.
+- The plugin is tested on Windows too.
 
 ### Fixed
 
@@ -192,7 +195,8 @@ Issue and pull request numbers refer to the [GitHub repository](https://github.c
 - First release: the `generateOpenApiDocs` task starts the Spring Boot application in the background, downloads its
   OpenAPI description and writes it to a file, with a clear error message when the application does not start.
 
-[Unreleased]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/1.9.0...2.0.0
 [1.9.0]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/1.8.0...1.9.0
 [1.8.0]: https://github.com/springdoc/springdoc-openapi-gradle-plugin/compare/1.7.0...1.8.0
