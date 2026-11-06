@@ -56,7 +56,7 @@ dependencies {
 	implementation(kotlin("reflect"))
 	implementation("com.google.code.gson:gson:2.15.0")
 	implementation("org.awaitility:awaitility-kotlin:4.0.3")
-	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
+	implementation("org.springframework.boot:spring-boot-gradle-plugin:4.1.2")
 
 	testImplementation(gradleTestKit())
 	testImplementation(platform("org.junit:junit-bom:5.7.1"))
