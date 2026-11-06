@@ -111,10 +111,13 @@ The plugin only calls an HTTP endpoint of your application, so it works with any
 
 | Spring Boot | springdoc-openapi |
 |:---:|:---:|
+| 🍃 4.x | 3.x |
 | 🍃 3.x | 2.x |
 | 🍂 2.x | 1.x |
 
-The plugin runs on Java 8 and later, with Gradle 7 and later, in builds written with the Kotlin or the Groovy DSL.
+The plugin needs Gradle 8.2 or later, and is tested up to Gradle 9.8, in builds written with the Kotlin or the Groovy
+DSL. It runs on every Java version that your Gradle version supports (Java 8 and later for Gradle 8, Java 17 and
+later for Gradle 9).
 
 ## 🎯 Tasks
 
