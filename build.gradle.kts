@@ -55,15 +55,15 @@ publishing {
 dependencies {
 	implementation(kotlin("reflect"))
 	implementation("com.google.code.gson:gson:2.15.0")
-	implementation("org.awaitility:awaitility-kotlin:4.0.3")
-	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.14")
+	implementation("org.awaitility:awaitility-kotlin:4.2.2")
+	implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.18")
 
 	testImplementation(gradleTestKit())
-	testImplementation(platform("org.junit:junit-bom:5.7.1"))
+	testImplementation(platform("org.junit:junit-bom:5.14.4"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("com.beust:klaxon:5.5")
-	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
-	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
+	testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.4")
+	testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.19.4")
 
 	detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.8")
 }
