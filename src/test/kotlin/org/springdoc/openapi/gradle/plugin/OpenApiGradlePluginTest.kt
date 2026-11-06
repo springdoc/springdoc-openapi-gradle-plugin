@@ -15,13 +15,16 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileReader
+import java.net.InetSocketAddress
 import java.net.ServerSocket
+import java.net.Socket
 import java.nio.file.Files
 
 class OpenApiGradlePluginTest {
@@ -57,6 +60,7 @@ class OpenApiGradlePluginTest {
 	companion object {
 		val logger: Logger = LoggerFactory.getLogger(OpenApiGradlePluginTest::class.java)
 		const val APPLICATION_STARTED_MESSAGE = "Hello World from Application Runner"
+		const val CHILD_PROCESS_PORT = 8085
 	}
 
 	@BeforeEach
@@ -584,6 +588,29 @@ class OpenApiGradlePluginTest {
 	}
 
 	@Test
+	fun `stopping the processes started by the application`() {
+		// Finding the processes started by the application needs Java 9: run this build on the JDK that runs Gradle
+		val gradleJavaHome = System.getProperty("gradle.java.home")
+		assumeTrue(gradleJavaHome != null && System.getProperty("gradle.java.version") != "1.8")
+		File(projectTestDir, "gradle.properties")
+			.writeText("org.gradle.java.home=${File(gradleJavaHome).invariantSeparatorsPath}\n")
+		buildFile.writeText(
+			"""$baseBuildGradle
+            openApi {
+                customBootRun {
+                    mainClass = "com.example.demo.ChildProcessApplication"
+                }
+            }
+        """.trimMargin()
+		)
+
+		assertEquals(TaskOutcome.SUCCESS, openApiDocsTask(runTheBuild()).outcome)
+		assertOpenApiJsonFile(1)
+		// The child process listened on its port as long as it was running
+		assertTrue(waitUntilNotListening(CHILD_PROCESS_PORT), "The child process is still running")
+	}
+
+	@Test
 	fun `starting the application with a long classpath`() {
 		// Too long for a Windows command line: the classpath goes through a pathing jar
 		buildFile.writeText(
@@ -704,6 +731,13 @@ class OpenApiGradlePluginTest {
 			.withArguments(*additionalArguments, "generateOpenApiDocs")
 			.withPluginClasspath()
 			.build()
+
+	private fun waitUntilNotListening(port: Int): Boolean =
+		(1..50).any {
+			val listening = runCatching { Socket().use { it.connect(InetSocketAddress("localhost", port), 100) } }.isSuccess
+			if (listening) Thread.sleep(100)
+			!listening
+		}
 
 	private fun runTheFailingBuild() =
 		GradleRunner.create()

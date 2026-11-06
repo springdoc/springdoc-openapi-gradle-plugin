@@ -100,6 +100,9 @@ tasks.withType<Test>().configureEach {
 	useJUnitPlatform()
 	maxParallelForks =
 		(Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+	// The tests run on the Java 8 toolchain: the JDK that runs Gradle is for the tests that need Java 9 or later
+	systemProperty("gradle.java.home", System.getProperty("java.home"))
+	systemProperty("gradle.java.version", System.getProperty("java.specification.version"))
 }
 
 detekt {
