@@ -115,7 +115,7 @@ The plugin only calls an HTTP endpoint of your application, so it works with any
 | 🍃 3.x | 2.x |
 | 🍂 2.x | 1.x |
 
-The plugin needs Gradle 8.2 or later, and is tested up to Gradle 9.8, in builds written with the Kotlin or the Groovy
+The plugin needs Gradle 8.0 or later, and is tested up to Gradle 9.8, in builds written with the Kotlin or the Groovy
 DSL. It runs on every Java version that your Gradle version supports (Java 8 and later for Gradle 8, Java 17 and
 later for Gradle 9).
 
