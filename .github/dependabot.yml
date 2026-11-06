@@ -22,6 +22,10 @@ updates:
       # awaitility-kotlin 4.3 is built with Kotlin 2.1, which the Kotlin 1.8 compiler cannot read.
       - dependency-name: 'org.awaitility:awaitility-kotlin'
         versions: ['>=4.3']
+      # Jackson 2.20+ is built with Kotlin 2 (jackson-module-kotlin brings kotlin-reflect 2.x, which the Kotlin 1.8
+      # compiler cannot read). The Jackson modules align on one version, so cap them all.
+      - dependency-name: 'com.fasterxml.jackson.*:*'
+        versions: ['>=2.20']
       # klaxon 5.6 needs Java 11.
       - dependency-name: 'com.beust:klaxon'
         versions: ['>=5.6']
